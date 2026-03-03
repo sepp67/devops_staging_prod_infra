@@ -1,0 +1,32 @@
+- name: Ensure monitoring directory exists
+  file:
+    path: "{{ monitoring_install_dir | default('/opt/monitoring') }}"
+    state: directory
+    mode: "0755"
+
+- name: Deploy docker compose
+  copy:
+    src: compose.yml
+    dest: "{{ monitoring_install_dir | default('/opt/monitoring') }}/compose.yml"
+    mode: "0644"
+  notify: Restart monitoring stack
+
+- name: Deploy Prometheus config
+  template:
+    src: prometheus.yml.j2
+    dest: "{{ monitoring_install_dir | default('/opt/monitoring') }}/prometheus.yml"
+    mode: "0644"
+  notify: Restart monitoring stack
+
+- name: Deploy Promtail config
+  template:
+    src: promtail.yml.j2
+    dest: "{{ monitoring_install_dir | default('/opt/monitoring') }}/promtail.yml"
+    mode: "0644"
+  notify: Restart monitoring stack
+
+- name: Start monitoring stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ monitoring_install_dir | default('/opt/monitoring') }}"
+    files: ["compose.yml"]
+    state: present

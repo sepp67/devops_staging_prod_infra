@@ -1,0 +1,12 @@
+profile: production
+
+exclude_paths:
+  - .git/
+  - .github/
+  - deploy/
+  - "**/vault.yml"
+  - "**/*vault*"
+  - "**/.venv/"
+
+skip_list:
+  - yaml[line-length]   # on laisse yamllint gérer ça
