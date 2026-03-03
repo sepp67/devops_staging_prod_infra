@@ -32,6 +32,13 @@
     mode: "0600"
   notify: Restart monitoring stack
 
+- name: Deploy Grafana provisioning (datasources + dashboards)
+  copy:
+    src: grafana/
+    dest: "{{ monitoring_install_dir | default('/opt/monitoring') }}/grafana/"
+    mode: "0755"
+  notify: Restart monitoring stack
+
 - name: Start monitoring stack (docker compose)
   command: docker compose -f compose.yml up -d
   args:
