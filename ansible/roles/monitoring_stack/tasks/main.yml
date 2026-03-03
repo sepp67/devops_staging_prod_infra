@@ -25,6 +25,13 @@
     mode: "0644"
   notify: Restart monitoring stack
 
+- name: Deploy Grafana env file
+  template:
+    src: grafana.env.j2
+    dest: "{{ monitoring_install_dir | default('/opt/monitoring') }}/grafana.env"
+    mode: "0600"
+  notify: Restart monitoring stack
+
 - name: Start monitoring stack (docker compose)
   command: docker compose -f compose.yml up -d
   args:
