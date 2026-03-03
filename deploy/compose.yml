@@ -49,6 +49,17 @@ services:
     depends_on:
       - db
 
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD={{ grafana_admin_password }}
+    volumes:
+      - "graf_data:/var/lib/grafana"
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
 networks:
   front:
   back:
