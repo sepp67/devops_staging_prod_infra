@@ -25,8 +25,9 @@
     mode: "0644"
   notify: Restart monitoring stack
 
-- name: Start monitoring stack
-  community.docker.docker_compose_v2:
-    project_src: "{{ monitoring_install_dir | default('/opt/monitoring') }}"
-    files: ["compose.yml"]
-    state: present
+- name: Start monitoring stack (docker compose)
+  command: docker compose -f compose.yml up -d
+  args:
+    chdir: "{{ monitoring_install_dir | default('/opt/monitoring') }}"
+  register: compose_up
+  changed_when: "'Recreating' in compose_up.stdout or 'Creating' in compose_up.stdout or 'Starting' in compose_up.stdout"

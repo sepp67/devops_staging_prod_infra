@@ -1,6 +1,4 @@
 - name: Restart monitoring stack
-  community.docker.docker_compose_v2:
-    project_src: "{{ monitoring_install_dir | default('/opt/monitoring') }}"
-    files: ["compose.yml"]
-    state: present
-    restarted: true
+  command: docker compose -f compose.yml up -d --force-recreate
+  args:
+    chdir: "{{ monitoring_install_dir | default('/opt/monitoring') }}"
