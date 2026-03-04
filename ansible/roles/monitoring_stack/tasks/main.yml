@@ -18,13 +18,6 @@
     mode: "0644"
   notify: Restart monitoring stack
 
-- name: Deploy Promtail config
-  template:
-    src: promtail.yml.j2
-    dest: "{{ monitoring_install_dir | default('/opt/monitoring') }}/promtail.yml"
-    mode: "0644"
-  notify: Restart monitoring stack
-
 - name: Deploy Grafana env file
   template:
     src: grafana.env.j2
@@ -38,6 +31,11 @@
     dest: "{{ monitoring_install_dir | default('/opt/monitoring') }}/grafana/"
     mode: "0755"
   notify: Restart monitoring stack
+
+- name: Stop stack to remove deleted services
+  command:
+    cmd: docker compose down --remove-orphans
+    chdir: /opt/monitoring
 
 - name: Start monitoring stack (docker compose)
   command: docker compose -f compose.yml up -d

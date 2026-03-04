@@ -1,0 +1,19 @@
+- name: Create promtail directory
+  file:
+    path: /opt/promtail
+    state: directory
+
+- name: Deploy compose
+  copy:
+    src: compose.yml
+    dest: /opt/promtail/compose.yml
+
+- name: Deploy promtail config
+  copy:
+    src: promtail.yml
+    dest: /opt/promtail/promtail.yml
+
+- name: Start promtail
+  command:
+    cmd: docker compose up -d
+    chdir: /opt/promtail

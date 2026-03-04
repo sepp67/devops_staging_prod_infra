@@ -4,3 +4,4 @@
   roles:
     - docker
     - monitoring_stack
+
