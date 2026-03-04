@@ -4,4 +4,10 @@
   roles:
     - docker
     - monitoring_stack
+
+- name: Deploy promtail on proxy (ship Caddy logs to Loki)
+  hosts: proxy
+  become: true
+  roles:
+    - docker
     - promtail
