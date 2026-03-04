@@ -34,8 +34,8 @@
 
 - name: Stop stack to remove deleted services
   command:
-    cmd: docker compose down --remove-orphans
-    chdir: /opt/monitoring
+    cmd: docker compose -f compose.yml down --remove-orphans
+    chdir: "{{ monitoring_install_dir | default('/opt/monitoring') }}"
 
 - name: Start monitoring stack (docker compose)
   command: docker compose -f compose.yml up -d
