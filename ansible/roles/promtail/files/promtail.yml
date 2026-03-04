@@ -6,7 +6,7 @@ positions:
   filename: /tmp/positions.yaml
 
 clients:
-  - url: http://10.0.0.16:3100/loki/api/v1/push
+  - url: /10.0.0.16:3100/loki/api/v1/push
 
 scrape_configs:
 
@@ -18,4 +18,4 @@ scrape_configs:
         labels:
           job: caddy
           host: vm-proxy
-          __path__: /var/log/caddy/*.log
+          __path__: /var/log/caddy/*.access.log

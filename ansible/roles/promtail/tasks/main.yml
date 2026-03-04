@@ -1,19 +1,24 @@
 - name: Create promtail directory
   file:
-    path: /opt/promtail
+    path: "{{ promtail_install_dir | default('/opt/promtail') }}"
     state: directory
+    mode: "0755"
 
-- name: Deploy compose
+- name: Deploy promtail compose
   copy:
     src: compose.yml
-    dest: /opt/promtail/compose.yml
+    dest: "{{ promtail_install_dir | default('/opt/promtail') }}/compose.yml"
+    mode: "0644"
+  notify: Restart promtail stack
 
 - name: Deploy promtail config
-  copy:
-    src: promtail.yml
-    dest: /opt/promtail/promtail.yml
+  template:
+    src: promtail.yml.j2
+    dest: "{{ promtail_install_dir | default('/opt/promtail') }}/promtail.yml"
+    mode: "0644"
+  notify: Restart promtail stack
 
 - name: Start promtail
   command:
-    cmd: docker compose up -d
-    chdir: /opt/promtail
+    cmd: docker compose -f compose.yml up -d
+    chdir: "{{ promtail_install_dir | default('/opt/promtail') }}"
