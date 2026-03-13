@@ -1,4 +1,6 @@
+---
 - name: Restart promtail stack
-  command:
-    cmd: docker compose -f compose.yml up -d --force-recreate promtail
-    chdir: "{{ promtail_install_dir | default('/opt/promtail') }}"
+  ansible.builtin.command:
+    chdir: "{{ promtail_install_dir }}"
+    cmd: docker compose up -d
+  changed_when: true

@@ -3,7 +3,7 @@
 }
 
 {% for s in sites %}
-{{ s.domain }}, www.{{ s.domain }} {
+{{ ([s.domain] + (s.aliases | default([]))) | join(', ') }} {
   encode gzip
 
   log {

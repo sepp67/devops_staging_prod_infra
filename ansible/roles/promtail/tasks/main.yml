@@ -1,24 +1,36 @@
+---
 - name: Create promtail directory
-  file:
-    path: "{{ promtail_install_dir | default('/opt/promtail') }}"
+  ansible.builtin.file:
+    path: "{{ promtail_install_dir }}"
     state: directory
     mode: "0755"
 
 - name: Deploy promtail compose
-  copy:
-    src: compose.yml
-    dest: "{{ promtail_install_dir | default('/opt/promtail') }}/compose.yml"
+  ansible.builtin.copy:
+    dest: "{{ promtail_install_dir }}/compose.yml"
     mode: "0644"
+    content: |
+      services:
+        promtail:
+          image: grafana/promtail:2.9.4
+          container_name: {{ promtail_container_name }}
+          restart: unless-stopped
+          command: -config.file=/etc/promtail/promtail.yml
+          volumes:
+            - ./promtail.yml:/etc/promtail/promtail.yml:ro
+            - /var/log:/var/log:ro
+            - /tmp:/tmp
   notify: Restart promtail stack
 
 - name: Deploy promtail config
-  template:
+  ansible.builtin.template:
     src: promtail.yml.j2
-    dest: "{{ promtail_install_dir | default('/opt/promtail') }}/promtail.yml"
+    dest: "{{ promtail_install_dir }}/promtail.yml"
     mode: "0644"
   notify: Restart promtail stack
 
 - name: Start promtail
-  command:
-    cmd: docker compose -f compose.yml up -d
-    chdir: "{{ promtail_install_dir | default('/opt/promtail') }}"
+  ansible.builtin.command:
+    chdir: "{{ promtail_install_dir }}"
+    cmd: docker compose up -d
+  changed_when: true
