@@ -1,0 +1,10 @@
+---
+- name: Render Caddyfile from sites inventory
+  ansible.builtin.template:
+    src: Caddyfile.j2
+    dest: "{{ proxy_dir }}/Caddyfile"
+    mode: "0644"
+  notify: Validate and reload caddy
+
+- name: Flush handlers now
+  ansible.builtin.meta: flush_handlers
