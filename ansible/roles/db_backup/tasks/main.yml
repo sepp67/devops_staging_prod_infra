@@ -23,29 +23,11 @@
     mode: "0755"
   when: db_backup_enabled and db_backup_nfs_enabled
 
-- name: Mount Synology NFS export persistently
-  ansible.posix.mount:
-    path: "{{ db_backup_nfs_mountpoint }}"
-    src: "{{ db_backup_nfs_server }}:{{ db_backup_nfs_export }}"
-    fstype: nfs
-    opts: "rw,nofail,_netdev,timeo=14"
-    state: mounted
-  when: db_backup_enabled and db_backup_nfs_enabled
-
 - name: Deploy DB backup script
   ansible.builtin.template:
     src: backup_db.sh.j2
     dest: "{{ db_backup_dir }}/backup_db.sh"
     mode: "0700"
-
-- name: Ensure required packages are installed (rsync + ssh client)
-  ansible.builtin.apt:
-    name:
-      - rsync
-      - openssh-client
-    state: present
-    update_cache: true
-  when: db_backup_enabled
 
 - name: Ensure cron is installed (provides crontab)
   ansible.builtin.apt:
