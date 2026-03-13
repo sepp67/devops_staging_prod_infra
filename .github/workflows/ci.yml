@@ -1,0 +1,66 @@
+name: CI - Ansible Quality Gate
+
+on:
+  push:
+    branches:
+      - main
+      - "refactor/**"
+      - "feature/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint YAML + Ansible
+    runs-on: ubuntu-24.04
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Install Ansible collections
+        run: |
+          ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: Show tool versions
+        run: |
+          python --version
+          ansible --version
+          ansible-lint --version
+          yamllint --version
+
+      - name: Run yamllint
+        run: yamllint .
+
+      - name: Run ansible-lint
+        run: ansible-lint -v ansible/
+
+      - name: Syntax check playbooks
+        working-directory: ansible
+        run: |
+          for playbook in playbooks/*.yml; do
+            echo "Syntax check: $playbook"
+            ansible-playbook --syntax-check -i localhost, "$playbook"
+          done
