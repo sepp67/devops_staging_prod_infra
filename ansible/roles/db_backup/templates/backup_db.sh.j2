@@ -18,10 +18,7 @@ chmod 700 "${BACKUP_DIR}"
 
 # Reuse existing local backup if present, otherwise create one
 if compgen -G "${TODAY_PATTERN}" > /dev/null; then
-if compgen -G "${TODAY_PATTERN}" > /dev/null; then
   OUT="$(compgen -G "${TODAY_PATTERN}" | head -n 1)"
-  echo "Local backup for today already exists: ${OUT}"
-else
   echo "Local backup for today already exists: ${OUT}"
 else
   if ! docker ps --format '{{"{{"}}.Names{{"}}"}}' | grep -qx "${DB_CONTAINER}"; then
