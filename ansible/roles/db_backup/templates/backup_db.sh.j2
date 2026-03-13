@@ -37,14 +37,24 @@ fi
 # Rotation locale
 find "${BACKUP_DIR}" -type f -name "${SITE}_*.sql.gz" -mtime +{{ db_backup_retention_days }} -delete
 
-# Copy to NAS via NFS
+# Copy to NAS via temporary NFS mount
 {% if db_backup_nfs_enabled and db_backup_copy_to_nas %}
 NAS_DIR="{{ db_backup_nfs_mountpoint }}"
+NAS_SRC="{{ db_backup_nfs_server }}:{{ db_backup_nfs_export }}"
 NAS_FILE="${NAS_DIR}/$(basename "${OUT}")"
 
+mkdir -p "${NAS_DIR}"
+
+cleanup() {
+  if mountpoint -q "${NAS_DIR}"; then
+    umount "${NAS_DIR}"
+  fi
+}
+
+trap cleanup EXIT
+
 if ! mountpoint -q "${NAS_DIR}"; then
-  echo "ERROR: NFS mount not present: ${NAS_DIR}" >&2
-  exit 1
+  mount -t nfs "${NAS_SRC}" "${NAS_DIR}"
 fi
 
 if [ -f "${NAS_FILE}" ]; then
