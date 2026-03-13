@@ -3,6 +3,7 @@ set -euo pipefail
 
 SITE="{{ site_name }}"
 BACKUP_DIR="{{ db_backup_dir }}"
+TODAY="$(date +%F)"
 TS="$(date +%F_%H%M%S)"
 
 DB_NAME="{{ secret.wp_db_name }}"
@@ -10,43 +11,46 @@ DB_USER="{{ secret.wp_db_user }}"
 DB_PASS="{{ secret.wp_db_password }}"
 
 DB_CONTAINER="${SITE}_db"
-OUT="${BACKUP_DIR}/${SITE}_${TS}.sql.gz"
-
-TODAY="$(date +%F)"
 TODAY_PATTERN="${BACKUP_DIR}/${SITE}_${TODAY}_*.sql.gz"
-
-# If a backup for today already exists, exit cleanly
-if compgen -G "${TODAY_PATTERN}" > /dev/null; then
-  echo "Backup for today already exists. Exiting."
-  exit 0
-fi
 
 mkdir -p "${BACKUP_DIR}"
 chmod 700 "${BACKUP_DIR}"
 
-# Vérif container présent (sinon on sort en erreur)
-if ! docker ps --format '{{"{{"}}.Names{{"}}"}}' | grep -qx "${DB_CONTAINER}"; then
-  echo "ERROR: DB container not running: ${DB_CONTAINER}" >&2
-  exit 1
-fi
+# Reuse existing local backup if present, otherwise create one
+if compgen -G "${TODAY_PATTERN}" > /dev/null; then
+  OUT="$(ls -1 ${TODAY_PATTERN} | head -n 1)"
+  echo "Local backup for today already exists: ${OUT}"
+else
+  if ! docker ps --format '{{"{{"}}.Names{{"}}"}}' | grep -qx "${DB_CONTAINER}"; then
+    echo "ERROR: DB container not running: ${DB_CONTAINER}" >&2
+    exit 1
+  fi
 
-# Dump depuis le container
-docker exec "${DB_CONTAINER}" mariadb-dump -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}" \
-  | gzip > "${OUT}"
+  OUT="${BACKUP_DIR}/${SITE}_${TS}.sql.gz}"
+
+  docker exec "${DB_CONTAINER}" mariadb-dump -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}" \
+    | gzip > "${OUT}"
+
+  echo "Created local backup: ${OUT}"
+fi
 
 # Rotation locale
 find "${BACKUP_DIR}" -type f -name "${SITE}_*.sql.gz" -mtime +{{ db_backup_retention_days }} -delete
 
-# Copie vers NAS via NFS (si activé)
+# Copy to NAS via NFS
 {% if db_backup_nfs_enabled and db_backup_copy_to_nas %}
 NAS_DIR="{{ db_backup_nfs_mountpoint }}"
+NAS_FILE="${NAS_DIR}/$(basename "${OUT}")"
 
-# Vérifie que c'est bien monté (sinon on échoue)
 if ! mountpoint -q "${NAS_DIR}"; then
   echo "ERROR: NFS mount not present: ${NAS_DIR}" >&2
   exit 1
 fi
 
-# Copie du fichier dump vers le NAS
-install -m 600 "${OUT}" "${NAS_DIR}/"
+if [ -f "${NAS_FILE}" ]; then
+  echo "Backup already present on NAS: ${NAS_FILE}"
+else
+  install -m 600 "${OUT}" "${NAS_DIR}/"
+  echo "Copied backup to NAS: ${NAS_FILE}"
+fi
 {% endif %}
