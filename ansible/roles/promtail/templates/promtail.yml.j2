@@ -1,18 +1,28 @@
 server:
-  http_listen_port: {{ promtail_http_port | default(9080) }}
+  http_listen_port: {{ promtail_http_port }}
   grpc_listen_port: 0
 
 positions:
   filename: /tmp/positions.yaml
 
 clients:
-  - url: {{ loki_url }}
+  - url: {{ promtail_loki_url }}
 
 scrape_configs:
   - job_name: caddy_logs
     static_configs:
-      - targets: [localhost]
+      - targets:
+          - localhost
         labels:
           job: caddy
-          host: {{ inventory_hostname }}
-          __path__: {{ promtail_caddy_log_path | default('/var/log/caddy/*.access.log') }}
+          host: {{ promtail_host_label }}
+          __path__: /var/log/caddy/*.log
+
+  - job_name: system_logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: syslog
+          host: {{ promtail_host_label }}
+          __path__: /var/log/*.log

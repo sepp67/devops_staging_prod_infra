@@ -1,0 +1,52 @@
+---
+- name: Create proxy directory
+  ansible.builtin.file:
+    path: "{{ proxy_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Create logs directory
+  ansible.builtin.file:
+    path: "{{ proxy_dir }}/logs"
+    state: directory
+    mode: "0755"
+
+- name: Ensure host caddy log directory exists
+  ansible.builtin.file:
+    path: /var/log/caddy
+    state: directory
+    mode: "0755"
+
+- name: Deploy proxy compose.yml
+  ansible.builtin.copy:
+    dest: "{{ proxy_dir }}/compose.yml"
+    mode: "0644"
+    content: |
+      services:
+        caddy:
+          image: caddy:2
+          container_name: caddy
+          restart: unless-stopped
+          ports:
+            - "80:80"
+            - "443:443"
+          volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile:ro
+            - caddy_data:/data
+            - caddy_config:/config
+            - /var/log/caddy:/var/log/caddy
+      volumes:
+        caddy_data: {}
+        caddy_config: {}
+
+- name: Deploy initial Caddyfile
+  ansible.builtin.template:
+    src: Caddyfile.j2
+    dest: "{{ proxy_dir }}/Caddyfile"
+    mode: "0644"
+
+- name: Start or update Caddy stack
+  ansible.builtin.command:
+    chdir: "{{ proxy_dir }}"
+    cmd: docker compose up -d
+  changed_when: true

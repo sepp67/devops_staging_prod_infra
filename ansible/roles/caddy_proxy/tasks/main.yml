@@ -1,45 +1,8 @@
-- name: Create proxy directory
-  ansible.builtin.file:
-    path: "{{ proxy_dir }}"
-    state: directory
-    mode: "0755"
+---
+- name: Run proxy bootstrap tasks
+  import_tasks: bootstrap.yml
+  when: caddy_proxy_mode | default('bootstrap') == 'bootstrap'
 
-- name: Create logs directory
-  ansible.builtin.file:
-    path: "{{ proxy_dir }}/logs"
-    state: directory
-    mode: "0755"
-
-- name: Deploy Caddyfile
-  ansible.builtin.template:
-    src: Caddyfile.j2
-    dest: "{{ proxy_dir }}/Caddyfile"
-    mode: "0644"
-
-- name: Deploy proxy compose.yml
-  ansible.builtin.copy:
-    dest: "{{ proxy_dir }}/compose.yml"
-    mode: "0644"
-    content: |
-      services:
-        caddy:
-          image: caddy:2
-          container_name: caddy
-          restart: unless-stopped
-          ports:
-            - "80:80"
-            - "443:443"
-          volumes:
-            - ./Caddyfile:/etc/caddy/Caddyfile:ro
-            - caddy_data:/data
-            - caddy_config:/config
-            - /var/log/caddy:/var/log/caddy
-      volumes:
-        caddy_data: {}
-        caddy_config: {}
-
-- name: Start/Update Caddy
-  ansible.builtin.command:
-    chdir: "{{ proxy_dir }}"
-    cmd: docker compose up -d --force-recreate
-  changed_when: true
+- name: Run proxy sites refresh tasks
+  import_tasks: sites.yml
+  when: caddy_proxy_mode | default('bootstrap') == 'sites'

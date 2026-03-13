@@ -1,6 +1,4 @@
-monitoring_install_dir: /opt/monitoring
-monitoring_prometheus_port: 9090
-monitoring_grafana_port: 3000
-
-# On réutilise ta variable sites (probablement dans group_vars/all.yml ou ailleurs)
-# et on s’en sert pour blackbox checks.
+---
+loki_bind_address: 10.0.0.16
+grafana_bind_address: 10.0.0.16
+prometheus_bind_address: 10.0.0.16

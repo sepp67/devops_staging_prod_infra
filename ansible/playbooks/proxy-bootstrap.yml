@@ -1,0 +1,12 @@
+---
+- name: Bootstrap proxy VM
+  hosts: proxy
+  become: true
+
+  roles:
+    - common
+    - docker
+    - role: caddy_proxy
+      vars:
+        caddy_proxy_mode: bootstrap
+    - promtail
