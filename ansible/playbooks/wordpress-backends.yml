@@ -1,0 +1,9 @@
+---
+- name: Deploy all WordPress backends
+  hosts: wordpress_nodes
+  become: true
+
+  roles:
+    - common
+    - docker
+    - wordpress_backend
