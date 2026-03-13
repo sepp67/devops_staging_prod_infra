@@ -1,96 +1,255 @@
-# DevOps WordPress Platform (Proxmox + Ansible + Docker + Caddy)
 
-A reproducible Infrastructure-as-Code showcase demonstrating how to build and evolve a WordPress platform using:
 
-- Proxmox virtual machines
-- Ansible provisioning
-- Docker Compose application stacks
-- Caddy reverse proxy with automatic HTTPS (Let’s Encrypt)
-- WireGuard network forwarding
+# DevOps WordPress Infrastructure Showcase
 
-This project evolves in structured maturity levels.
+This repository demonstrates a progressive DevOps infrastructure project built with **Ansible, Docker, and Caddy**.
+
+The goal of this project is to show how a simple infrastructure can evolve into a **modular, production-like DevOps architecture** with automation, observability, and maintainable deployment workflows.
+
+The infrastructure is built and tested on a **Proxmox-based homelab**.
 
 ---
 
-## Level 1 – Single VM Architecture
+# Architecture Overview
 
-Tag: `v1.0-level1`
-
-A complete WordPress stack deployed on a single VM:
-
-- Docker
-- WordPress + MariaDB
-- Caddy reverse proxy
-- Basic host hardening (UFW, base packages)
-
-Architecture:
-Internet → VPS Public IP → WireGuard Tunnel → VM → Caddy → WordPress
-
-### How to deploy:
-cd ansible
-ansible-playbook -i inventory/production.ini playbooks/level1.yml
-
-## Level 2 – Dedicated Proxy + Multiple Backends
-
-Tag: v2.0-level2
-
-- A production-like split architecture:
-
-- Proxy VM (Caddy entrypoint)
-
-- Dedicated WordPress backend VMs
-
-- Firewall segmentation (proxy → backend only)
-
-- Per-site logging & PHP tuning via Ansible
-
-Architecture:
-Level 2 – Dedicated Proxy + Multiple Backends
-- Internet
-   
-- VPS Public IP
-   
-- WireGuard
-   
-- Proxy VM (Caddy)
-   
-- WordPress Backend VM(s)
-
-### How to deploy
-cd ansible
-ansible-playbook -i inventory/production.ini playbooks/level2.yml
-
-## Roadmap – Level 3
-
-Planned improvements:
-
-- Ansible Vault for secrets
-
-- Automated backups + restore validation
-
-- CI pipeline (ansible-lint, yamllint)
-
-- Monitoring stack (Prometheus/Grafana)
-
-- Terraform provisioning for Proxmox
-
-- Centralized logging
-
-## Documentation
-
-Detailed technical documentation is available in the /docs directory:
+Current architecture (Level 2 – modular refactor)
 
 
-## Objective
+Internet
+↓
+Caddy Reverse Proxy (vm-proxy)
+↓
+WordPress Backend VMs
+(vm-wp1, vm-wp2, …)
 
-This project demonstrates:
+Observability Stack
 
-- Infrastructure evolution from simple to segmented architecture
+Grafana
+Loki
+Promtail agents
 
-- Idempotent automation with Ansible
 
-- Network segmentation & security mindset
+Key components:
 
-- Platform-oriented DevOps thinking
+- **Caddy** – reverse proxy and TLS termination
+- **WordPress** – containerized application backends
+- **Docker Compose** – service orchestration
+- **Ansible** – infrastructure automation
+- **Grafana + Loki + Promtail** – log aggregation and observability
 
-It is designed as a technical showcase and learning platform.
+---
+
+# Infrastructure Topology
+
+Example inventory:
+
+vm-proxy → Reverse proxy + Promtail
+vm-wp1 → WordPress backend
+vm-wp2 → WordPress backend
+vm-monitoring → Grafana + Loki + Prometheus
+
+
+Traffic flow:
+
+
+Client → Caddy Proxy → WordPress Backend
+
+Logs:
+Caddy → Promtail → Loki → Grafana
+
+
+---
+
+# Deployment Model
+
+The infrastructure is managed through **modular playbooks**.
+
+This refactoring allows targeted operations instead of a monolithic deployment.
+
+Main operational playbooks:
+
+
+proxy-bootstrap.yml
+proxy-sites-refresh.yml
+wordpress-backends.yml
+wordpress-site.yml
+monitoring.yml
+level2.yml
+
+
+## Proxy lifecycle
+
+Bootstrap proxy infrastructure:
+
+
+ansible-playbook playbooks/proxy-bootstrap.yml
+
+
+Refresh only the published sites:
+
+
+ansible-playbook playbooks/proxy-sites-refresh.yml
+
+
+## WordPress lifecycle
+
+Deploy all backends:
+
+
+ansible-playbook playbooks/wordpress-backends.yml
+
+
+Deploy a single site:
+
+
+ansible-playbook playbooks/wordpress-site.yml -e "target_host=vm-wp1"
+
+
+## Full deployment
+
+
+ansible-playbook playbooks/level2.yml
+
+
+---
+
+# Repository Structure
+
+
+ansible/
+inventory/
+group_vars/
+playbooks/
+roles/
+
+deploy/
+docker compose templates
+
+docs/
+architecture and examples
+
+
+Important roles:
+
+
+caddy_proxy
+wordpress_backend
+promtail
+monitoring_stack
+
+
+---
+
+# Observability
+
+Logs are centralized using the **Grafana stack**.
+
+Components:
+
+
+Promtail → log shipping
+Loki → log storage
+Grafana → visualization
+
+
+Caddy access logs are automatically collected and visible in Grafana dashboards.
+
+---
+
+# Project Evolution
+
+The repository shows the evolution of the infrastructure.
+
+## Level 1
+
+Single VM WordPress deployment.
+
+
+VM
+└── WordPress
+└── Caddy
+└── Docker
+
+
+## Level 2
+
+Reverse proxy architecture with multiple backends.
+
+
+Proxy VM
+↓
+Multiple WordPress nodes
+
+
+## Level 2.1 – Modular Refactor (current)
+
+Infrastructure refactored to separate lifecycle operations.
+
+Improvements:
+
+- proxy bootstrap separated from configuration refresh
+- targeted backend deployments
+- Promtail attached to node lifecycle
+- centralized site definitions
+- cleaner orchestration
+
+---
+
+# Technologies Used
+
+Core stack:
+
+
+Ansible
+Docker
+Caddy
+WordPress
+Grafana
+Loki
+Promtail
+
+
+Infrastructure:
+
+
+Proxmox
+Linux
+GitHub
+
+
+---
+
+# Why This Project Exists
+
+This repository is part of my **DevOps portfolio**.
+
+The objective is to demonstrate:
+
+- Infrastructure as Code
+- Modular automation design
+- Reverse proxy architectures
+- Container-based deployments
+- Observability integration
+- Real-world operational workflows
+
+---
+
+# Future Improvements (Level 3)
+
+Planned features:
+
+- CI pipeline (GitHub Actions)
+- automated deployment workflows
+- staging environment
+- infrastructure testing
+- backup and restore automation
+
+---
+
+# Author
+
+Sébastien Schmitt
+
+DevOps / Linux Engineer  
+Open-source enthusiast  
+Focused on infrastructure automation and identity systems.
