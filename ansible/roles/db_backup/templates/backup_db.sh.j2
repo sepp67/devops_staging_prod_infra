@@ -47,7 +47,7 @@ mkdir -p "${NAS_DIR}"
 
 cleanup() {
   if mountpoint -q "${NAS_DIR}"; then
-    umount "${NAS_DIR}"
+    umount "${NAS_DIR}" || true
   fi
 }
 
