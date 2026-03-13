@@ -1,15 +1,4 @@
-- name: Phase 2 - Proxy (Caddy)
-  hosts: proxy
-  become: true
-  roles:
-    - common
-    - docker
-    - caddy_proxy
-
-- name: Phase 2 - WordPress backend nodes
-  hosts: wordpress_nodes
-  become: true
-  roles:
-    - common
-    - docker
-    - wordpress_backend
+---
+- import_playbook: proxy-bootstrap.yml
+- import_playbook: wordpress-backends.yml
+- import_playbook: proxy-sites-refresh.yml
