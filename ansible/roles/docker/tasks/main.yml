@@ -33,8 +33,8 @@
     state: started
     enabled: true
 
-- name: Add user to docker group
+- name: Add SSH user to docker group
   ansible.builtin.user:
-    name: "{{ ansible_user }}"
+    name: "{{ ansible_user | default(ansible_user_id) }}"
     groups: docker
     append: true
