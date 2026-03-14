@@ -1,0 +1,8 @@
+---
+- name: Deploy camera application in staging
+  hosts: camera_staging
+  become: true
+  roles:
+    - common
+    - docker
+    - camera_stream_app

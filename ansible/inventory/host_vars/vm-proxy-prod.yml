@@ -1,0 +1,15 @@
+proxy_dir: /opt/devops-proxy
+caddy_email: "admin@lavallee.tech"
+
+sites:
+  - name: invoice
+    domain: invoice.lavallee.tech
+    aliases: []
+    backend_host: 10.0.0.18
+    backend_port: 8080
+
+  - name: camera
+    domain: camera.lavallee.tech
+    aliases: []
+    backend_host: 10.0.0.17
+    backend_port: 8090

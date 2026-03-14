@@ -1,0 +1,11 @@
+app_name: camera
+app_env: staging
+
+app_port: 8090
+app_domain: camera.staging.local
+
+app_install_dir: /opt/camera-app
+
+app_local_ip: 192.168.1.54
+
+docker_project_name: camera_staging

@@ -1,0 +1,15 @@
+proxy_dir: /opt/devops-proxy-staging
+caddy_email: ""
+
+sites:
+  - name: invoice-staging
+    domain: invoice.staging.local
+    aliases: []
+    backend_host: 192.168.1.53
+    backend_port: 8080
+
+  - name: camera-staging
+    domain: camera.staging.local
+    aliases: []
+    backend_host: 192.168.1.54
+    backend_port: 8090

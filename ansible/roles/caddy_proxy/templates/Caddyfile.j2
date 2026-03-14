@@ -1,6 +1,8 @@
+{% if caddy_email is defined and caddy_email | length > 0 %}
 {
   email {{ caddy_email }}
 }
+{% endif %}
 
 {% for s in sites %}
 {{ ([s.domain] + (s.aliases | default([]))) | join(', ') }} {

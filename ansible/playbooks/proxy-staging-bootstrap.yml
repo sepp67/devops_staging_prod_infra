@@ -1,0 +1,10 @@
+---
+- name: Bootstrap staging proxy
+  hosts: proxy_staging
+  become: true
+  vars:
+    caddy_proxy_mode: bootstrap
+  roles:
+    - common
+    - docker
+    - caddy_proxy

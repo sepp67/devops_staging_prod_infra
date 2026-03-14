@@ -1,0 +1,8 @@
+---
+- name: Deploy invoice application in staging
+  hosts: invoice_staging
+  become: true
+  roles:
+    - common
+    - docker
+    - invoice_app

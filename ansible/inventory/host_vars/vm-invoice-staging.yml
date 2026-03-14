@@ -1,0 +1,11 @@
+app_name: invoice
+app_env: staging
+
+app_port: 8080
+app_domain: invoice.staging.local
+
+app_install_dir: /opt/invoice-app
+
+app_local_ip: 192.168.1.53
+
+docker_project_name: invoice_staging
