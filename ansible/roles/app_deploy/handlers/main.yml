@@ -1,0 +1,6 @@
+---
+- name: Restart application stack
+  ansible.builtin.command:
+    chdir: "{{ app_install_dir }}"
+    cmd: docker compose -p {{ docker_project_name }} -f {{ app_compose_filename }} up -d
+  changed_when: true

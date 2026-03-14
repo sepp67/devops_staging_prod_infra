@@ -1,0 +1,15 @@
+---
+- name: Render compose file
+  ansible.builtin.template:
+    src: compose.yml.j2
+    dest: "{{ app_install_dir }}/{{ app_compose_filename }}"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0644"
+  notify: Restart application stack
+
+- name: Start or update application stack
+  ansible.builtin.command:
+    chdir: "{{ app_install_dir }}"
+    cmd: docker compose -p {{ docker_project_name }} -f {{ app_compose_filename }} up -d
+  changed_when: true

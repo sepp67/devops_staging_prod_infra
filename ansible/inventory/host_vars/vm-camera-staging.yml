@@ -3,9 +3,33 @@ app_env: staging
 
 app_port: 8090
 app_domain: camera.staging.local
-
-app_install_dir: /opt/camera-app
-
 app_local_ip: 192.168.1.54
 
+app_install_dir: /opt/camera-app
 docker_project_name: camera_staging
+app_container_name: camera-app
+
+app_image: ghcr.io/sepp67/camera-app
+app_image_tag: latest
+
+app_directories:
+  - /opt/camera-app
+  - /opt/camera-app/cache
+  - /opt/camera-app/logs
+
+app_ports:
+  - "8090:8090"
+
+app_volumes:
+  - "./cache:/app/cache"
+  - "./logs:/app/logs"
+
+app_env_vars:
+  APP_ENV: staging
+  APP_PORT: "8090"
+  APP_DOMAIN: camera.staging.local
+  APP_LOCAL_IP: 192.168.1.54
+  CAMERA_SOURCE_URL: "rtsp://192.168.1.100/stream"
+
+app_healthcheck_enabled: true
+app_healthcheck_url: "http://127.0.0.1:8090/"

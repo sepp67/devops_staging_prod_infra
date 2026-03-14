@@ -1,0 +1,51 @@
+---
+app_name: myapp
+app_env: staging
+
+app_install_dir: "/opt/{{ app_name }}"
+app_container_name: "{{ app_name }}"
+docker_project_name: "{{ app_name }}"
+
+app_image: ""
+app_image_tag: "latest"
+app_restart_policy: unless-stopped
+
+app_user: root
+app_group: root
+
+app_directories:
+  - "{{ app_install_dir }}"
+
+app_env_vars: {}
+
+app_ports: []
+# Exemple:
+# app_ports:
+#   - "8080:8080"
+
+app_volumes: []
+# Exemple:
+# app_volumes:
+#   - "./data:/app/data"
+#   - "./logs:/app/logs"
+
+app_command: ""
+app_entrypoint: ""
+
+app_networks: []
+# Exemple:
+# app_networks:
+#   - app_net
+
+app_extra_compose: ""
+# Bloc YAML libre injecté dans le service si besoin
+
+app_healthcheck_enabled: false
+app_healthcheck_url: ""
+app_healthcheck_method: GET
+app_healthcheck_status_code: 200
+app_healthcheck_retries: 10
+app_healthcheck_delay: 3
+
+app_compose_filename: compose.yml
+app_env_filename: .env

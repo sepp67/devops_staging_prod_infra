@@ -5,4 +5,4 @@
   roles:
     - common
     - docker
-    - invoice_app
+    - app_deploy

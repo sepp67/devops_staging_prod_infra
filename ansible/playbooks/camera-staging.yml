@@ -5,4 +5,4 @@
   roles:
     - common
     - docker
-    - camera_stream_app
+    - app_deploy
