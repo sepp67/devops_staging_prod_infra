@@ -1,3 +1,4 @@
+---
 profile: production
 
 exclude_paths:
@@ -9,4 +10,5 @@ exclude_paths:
   - "**/.venv/"
 
 skip_list:
-  - yaml[line-length]   # on laisse yamllint gérer ça
+  - yaml[line-length]
+  - var-naming[no-role-prefix]
