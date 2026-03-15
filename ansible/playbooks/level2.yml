@@ -1,4 +1,4 @@
 ---
-  import_playbook: proxy-bootstrap.yml
-  import_playbook: wordpress-backends.yml
-  import_playbook: proxy-sites-refresh.yml
+- import_playbook: proxy-bootstrap.yml
+- import_playbook: wordpress-backends.yml
+- import_playbook: proxy-sites-refresh.yml
