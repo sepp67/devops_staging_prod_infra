@@ -15,4 +15,3 @@ wp_db_name: wordpress_db_name
 wp_db_user: wpuser_name
 wp_db_password: "STRONG_Password_of_course"
 wp_db_root_password: "STRONG_password_of_course"
-

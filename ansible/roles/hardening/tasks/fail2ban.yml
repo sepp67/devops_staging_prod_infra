@@ -2,7 +2,7 @@
   apt:
     name: fail2ban
     state: present
-    update_cache: yes
+    update_cache: true
 
 - name: Deploy wordpress filter
   template:
