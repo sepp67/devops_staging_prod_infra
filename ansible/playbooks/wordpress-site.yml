@@ -1,6 +1,6 @@
 ---
 - name: Deploy one WordPress backend
-  hosts: "{{ target_host }}"
+  hosts: "{{ target_host | default('all') }}"
   become: true
 
   roles:

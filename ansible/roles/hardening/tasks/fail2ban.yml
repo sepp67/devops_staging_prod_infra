@@ -3,21 +3,25 @@
     name: fail2ban
     state: present
     update_cache: true
+    mode: "0644"
 
 - name: Deploy wordpress filter
   template:
     src: wordpress-auth.conf.j2
     dest: /etc/fail2ban/filter.d/wordpress-auth.conf
   notify: restart fail2ban
+    mode: "0644"
 
 - name: Deploy jail.local
   template:
     src: jail.local.j2
     dest: /etc/fail2ban/jail.local
   notify: restart fail2ban
+    mode: "0644"
 
 - name: Ensure fail2ban started
   systemd:
     name: fail2ban
     enabled: true
     state: started
+    mode: "0644"
