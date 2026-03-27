@@ -23,7 +23,7 @@ sites:
   - name: webcam
     domain: webcam.lavallee.tech
     backend_host: 10.0.0.8
-    backend_port: 8080
+    backend_port: 80
 
 loki_host: "{{ hostvars[groups['monitoring'][0]].ansible_host }}"
 loki_url: "http://{{ loki_host }}:3100/loki/api/v1/push"
