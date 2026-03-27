@@ -20,3 +20,9 @@ sites:
     aliases: []
     backend_host: 10.0.0.15
     backend_port: 8080
+
+  - name: webcam1-solbach
+    domain: webcam.lavallee.tech
+    aliases: []
+    backend_host: 10.0.0.8
+    backend_port: 8080
