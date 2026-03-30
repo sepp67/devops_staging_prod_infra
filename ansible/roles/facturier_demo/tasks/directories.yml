@@ -1,9 +1,0 @@
----
-- name: Create facturier directory tree
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    owner: "{{ facturier_user }}"
-    group: "{{ facturier_group }}"
-    mode: "0755"
-  loop: "{{ facturier_directory_tree }}"
