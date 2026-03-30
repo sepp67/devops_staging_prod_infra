@@ -5,4 +5,6 @@
   vars:
     caddy_proxy_mode: sites
   roles:
-    - caddy_proxy
+    - role: caddy_proxy
+      vars:
+        caddy_proxy_mode: sites
