@@ -16,15 +16,15 @@ sites:
 
   - name: facturier-vitrine-staging
     domain: facturier.staging.local
-    backend_host: 192.168.1.53
+    backend_host: 192.168.1.20
     backend_port: 8080
 
   - name: facturier-app-staging
     domain: app.facturier.staging.local
-    backend_host: 192.168.1.53
+    backend_host: 192.168.1.20
     backend_port: 8080
 
   - name: facturier-api-staging
     domain: api.facturier.staging.local
-    backend_host: 192.168.1.53
+    backend_host: 192.168.1.20
     backend_port: 8000
