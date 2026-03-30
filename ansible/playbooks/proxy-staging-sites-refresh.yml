@@ -1,9 +1,8 @@
 ---
-- name: Refresh staging proxy sites
+- name: Refresh proxy sites only
   hosts: proxy_staging
   become: true
-  vars:
-    caddy_proxy_mode: sites
+
   roles:
     - role: caddy_proxy
       vars:
