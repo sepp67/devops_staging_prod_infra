@@ -1,2 +1,3 @@
 ---
-- import_playbook: level1.yml
+- name: Run level 1 deployment
+  import_playbook: level1.yml

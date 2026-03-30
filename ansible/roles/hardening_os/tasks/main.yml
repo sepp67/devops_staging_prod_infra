@@ -1,5 +1,11 @@
-- import_tasks: ssh.yml
-- ansible.builtin.import_tasks: fail2ban.yml
+---
+- name: Import SSH hardening tasks
+  ansible.builtin.import_tasks: ssh.yml
+
+- name: Import Fail2ban tasks
+  ansible.builtin.import_tasks: fail2ban.yml
   when: hardening_os_fail2ban_enabled
-- import_tasks: firewall.yml
+
+- name: Import firewall tasks  
+  ansible.builtin.import_tasks: firewall.yml
   when: hardening_os_firewall_enabled

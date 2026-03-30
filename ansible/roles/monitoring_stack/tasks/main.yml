@@ -5,28 +5,28 @@
     mode: "0755"
 
 - name: Deploy docker compose
-  copy:
+  ansible.builtin.copy:
     src: compose.yml
     dest: "{{ monitoring_install_dir | default('/opt/monitoring') }}/compose.yml"
     mode: "0644"
   notify: Restart monitoring stack
 
 - name: Deploy Prometheus config
-  template:
+  ansible.builtin.template:
     src: prometheus.yml.j2
     dest: "{{ monitoring_install_dir | default('/opt/monitoring') }}/prometheus.yml"
     mode: "0644"
   notify: Restart monitoring stack
 
 - name: Deploy Grafana env file
-  template:
+  ansible.builtin.template:
     src: grafana.env.j2
     dest: "{{ monitoring_install_dir | default('/opt/monitoring') }}/grafana.env"
     mode: "0600"
   notify: Restart monitoring stack
 
 - name: Deploy Grafana provisioning (datasources + dashboards)
-  copy:
+  ansible.builtin.copy:
     src: grafana/
     dest: "{{ monitoring_install_dir | default('/opt/monitoring') }}/grafana/"
     mode: "0755"

@@ -1,2 +1,3 @@
 ---
-- import_tasks: deploy.yml
+- name: Import WordPress backend deployment tasks
+  ansible.builtin.import_tasks: deploy.yml
