@@ -1,0 +1,21 @@
+---
+- name: Wait for web service to respond
+  ansible.builtin.uri:
+    url: "{{ facturier_healthcheck_web_url }}"
+    status_code: 200
+  register: facturier_web_health
+  retries: 15
+  delay: 2
+  until: facturier_web_health.status == 200
+  changed_when: false
+
+- name: Wait for API service to respond
+  ansible.builtin.uri:
+    url: "{{ facturier_healthcheck_api_url }}"
+    status_code: 200
+  register: facturier_api_health
+  retries: 15
+  delay: 2
+  until: facturier_api_health.status == 200
+  changed_when: false
+  when: facturier_enable_api | bool

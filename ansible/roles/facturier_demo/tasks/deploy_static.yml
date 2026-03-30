@@ -1,0 +1,27 @@
+---
+- name: Deploy vitrine homepage
+  ansible.builtin.template:
+    src: index_vitrine.html.j2
+    dest: "{{ facturier_vitrine_dir }}/index.html"
+    owner: "{{ facturier_user }}"
+    group: "{{ facturier_group }}"
+    mode: "0644"
+  notify: Restart facturier web only
+
+- name: Copy frontend app files
+  ansible.builtin.copy:
+    src: app/
+    dest: "{{ facturier_frontend_dir }}/"
+    owner: "{{ facturier_user }}"
+    group: "{{ facturier_group }}"
+    mode: preserve
+  notify: Restart facturier web only
+
+- name: Deploy nginx config
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: "{{ facturier_web_dir }}/nginx.conf"
+    owner: "{{ facturier_user }}"
+    group: "{{ facturier_group }}"
+    mode: "0644"
+  notify: Restart facturier web only

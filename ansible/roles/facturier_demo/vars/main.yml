@@ -1,0 +1,14 @@
+---
+facturier_directory_tree:
+  - "{{ facturier_install_dir }}"
+  - "{{ facturier_api_dir }}"
+  - "{{ facturier_api_app_dir }}"
+  - "{{ facturier_web_dir }}"
+  - "{{ facturier_vitrine_dir }}"
+  - "{{ facturier_frontend_dir }}"
+  - "{{ facturier_scripts_dir }}"
+  - "{{ facturier_data_dir }}"
+  - "{{ facturier_input_dir }}"
+  - "{{ facturier_output_dir }}"
+  - "{{ facturier_tmp_dir }}"
+  - "{{ facturier_logs_dir }}"

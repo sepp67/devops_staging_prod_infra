@@ -1,0 +1,7 @@
+---
+- name: Deploy Facturier Demo on staging
+  hosts: vm_facturier_staging
+  become: true
+
+  roles:
+    - role: facturier_demo

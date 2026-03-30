@@ -1,0 +1,28 @@
+---
+- name: Deploy environment file
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ facturier_install_dir }}/.env"
+    owner: "{{ facturier_user }}"
+    group: "{{ facturier_group }}"
+    mode: "0640"
+  notify: Restart facturier compose
+
+- name: Deploy docker compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ facturier_install_dir }}/docker-compose.yml"
+    owner: "{{ facturier_user }}"
+    group: "{{ facturier_group }}"
+    mode: "0644"
+  notify: Restart facturier compose
+
+- name: Ensure facturier stack is running
+  community.docker.docker_compose_v2:
+    project_src: "{{ facturier_install_dir }}"
+    state: present
+    pull: never
+    recreate: auto
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
