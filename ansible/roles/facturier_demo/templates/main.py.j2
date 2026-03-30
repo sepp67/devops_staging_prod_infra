@@ -54,3 +54,11 @@ def root() -> JSONResponse:
             "info": "/api/info",
         }
     )
+
+@app.get("/api/version")
+def version() -> dict:
+    return {
+        "api": "facturier-demo",
+        "version": "0.1.0",
+        "environment": os.getenv("FACTURIER_ENV", "unknown"),
+    }
