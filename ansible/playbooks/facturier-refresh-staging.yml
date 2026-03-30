@@ -1,8 +1,8 @@
 ---
-- name: Bootstrap facturier staging
+- name: Refresh facturier staging
   hosts: vm_facturier_staging
   become: true
   roles:
     - role: facturier_demo
       vars:
-        facturier_demo_mode: bootstrap
+        facturier_demo_mode: refresh

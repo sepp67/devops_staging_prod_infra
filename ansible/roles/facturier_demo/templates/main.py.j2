@@ -1,0 +1,56 @@
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+
+app = FastAPI(title="Facturier Demo API", version="0.1.0")
+
+
+def env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+@app.get("/api/health")
+def health() -> dict:
+    return {
+        "status": "ok",
+        "name": os.getenv("FACTURIER_APP_NAME", "facturier-demo"),
+        "environment": os.getenv("FACTURIER_ENV", "unknown"),
+        "generation_enabled": env_bool("FACTURIER_ENABLE_GENERATION"),
+    }
+
+
+@app.get("/api/info")
+def info() -> dict:
+    return {
+        "input_dir": os.getenv("FACTURIER_INPUT_DIR", "/data/input"),
+        "output_dir": os.getenv("FACTURIER_OUTPUT_DIR", "/data/output"),
+        "tmp_dir": os.getenv("FACTURIER_TMP_DIR", "/data/tmp"),
+        "scripts_dir": os.getenv("FACTURIER_SCRIPTS_DIR", "/scripts"),
+    }
+
+
+@app.get("/api/files")
+def files() -> dict:
+    output_dir = Path(os.getenv("FACTURIER_OUTPUT_DIR", "/data/output"))
+    return {
+        "output_exists": output_dir.exists(),
+        "output_files": sorted([p.name for p in output_dir.iterdir()]) if output_dir.exists() else [],
+    }
+
+
+@app.get("/")
+def root() -> JSONResponse:
+    return JSONResponse(
+        content={
+            "message": "Facturier Demo API",
+            "health": "/api/health",
+            "info": "/api/info",
+        }
+    )

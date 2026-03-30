@@ -1,0 +1,8 @@
+---
+- name: Run facturier bootstrap tasks
+  ansible.builtin.import_tasks: bootstrap.yml
+  when: facturier_demo_mode | default('bootstrap') == 'bootstrap'
+
+- name: Run facturier refresh tasks
+  ansible.builtin.import_tasks: refresh.yml
+  when: facturier_demo_mode | default('bootstrap') == 'refresh'

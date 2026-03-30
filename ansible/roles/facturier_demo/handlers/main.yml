@@ -1,0 +1,6 @@
+---
+- name: Restart facturier stack
+  ansible.builtin.command:
+    cmd: docker compose -f compose.yml up -d --force-recreate
+    chdir: "{{ facturier_install_dir }}"
+  changed_when: true

@@ -1,0 +1,103 @@
+---
+- name: Ensure facturier base directory exists
+  ansible.builtin.file:
+    path: "{{ facturier_install_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Ensure facturier subdirectories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ facturier_install_dir }}/api"
+    - "{{ facturier_install_dir }}/api/app"
+    - "{{ facturier_install_dir }}/web"
+    - "{{ facturier_install_dir }}/web/vitrine"
+    - "{{ facturier_install_dir }}/web/app"
+    - "{{ facturier_scripts_dir }}"
+    - "{{ facturier_data_dir }}"
+    - "{{ facturier_data_dir }}/input"
+    - "{{ facturier_data_dir }}/output"
+    - "{{ facturier_data_dir }}/tmp"
+    - "{{ facturier_install_dir }}/logs"
+
+- name: Deploy vitrine homepage
+  ansible.builtin.template:
+    src: index_vitrine.html.j2
+    dest: "{{ facturier_install_dir }}/web/vitrine/index.html"
+    mode: "0644"
+
+- name: Copy frontend app files
+  ansible.builtin.copy:
+    src: app/
+    dest: "{{ facturier_install_dir }}/web/app/"
+    mode: preserve
+
+- name: Copy generation scripts
+  ansible.builtin.copy:
+    src: scripts/
+    dest: "{{ facturier_scripts_dir }}/"
+    mode: preserve
+
+- name: Deploy API Dockerfile
+  ansible.builtin.copy:
+    src: Dockerfile.api
+    dest: "{{ facturier_install_dir }}/api/Dockerfile"
+    mode: "0644"
+
+- name: Deploy API requirements.txt
+  ansible.builtin.copy:
+    src: requirements.txt
+    dest: "{{ facturier_install_dir }}/api/requirements.txt"
+    mode: "0644"
+
+- name: Deploy API main.py
+  ansible.builtin.template:
+    src: main.py.j2
+    dest: "{{ facturier_install_dir }}/api/app/main.py"
+    mode: "0644"
+
+- name: Deploy nginx config
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: "{{ facturier_install_dir }}/web/nginx.conf"
+    mode: "0644"
+
+- name: Deploy docker compose
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ facturier_install_dir }}/compose.yml"
+    mode: "0644"
+
+- name: Start facturier stack
+  ansible.builtin.command:
+    cmd: docker compose -f compose.yml up -d
+    chdir: "{{ facturier_install_dir }}"
+  register: facturier_compose_up
+  changed_when: >
+    'Recreating' in facturier_compose_up.stdout or
+    'Creating' in facturier_compose_up.stdout or
+    'Starting' in facturier_compose_up.stdout
+
+- name: Wait for facturier web
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ facturier_web_port }}/"
+    status_code: 200
+  register: facturier_web_check
+  retries: 15
+  delay: 2
+  until: facturier_web_check.status == 200
+  changed_when: false
+
+- name: Wait for facturier api
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ facturier_api_port }}/api/health"
+    status_code: 200
+  register: facturier_api_check
+  retries: 15
+  delay: 2
+  until: facturier_api_check.status == 200
+  changed_when: false
+  when: facturier_enable_api | bool
