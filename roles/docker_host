@@ -1,8 +1,0 @@
-docker_host_install_compose: true
-docker_host_users:
-  - devops
-
-docker_registry_auth_enabled: false
-docker_registry_url: ghcr.io
-docker_registry_username: ""
-docker_registry_password: ""

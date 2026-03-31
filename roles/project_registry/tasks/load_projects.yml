@@ -1,0 +1,63 @@
+---
+- name: Find all project definition files
+  ansible.builtin.set_fact:
+    project_registry_files: "{{ lookup('fileglob', project_registry_search_path, wantlist=True) | sort }}"
+
+- name: Load all project definition files
+  ansible.builtin.include_vars:
+    file: "{{ item }}"
+  loop: "{{ project_registry_files }}"
+  register: project_registry_loaded_files
+
+- name: Build raw project list
+  ansible.builtin.set_fact:
+    project_registry_projects_raw: "{{ project_registry_loaded_files.results | map(attribute='ansible_facts') | list }}"
+
+- name: Filter projects by target environment
+  ansible.builtin.set_fact:
+    project_registry_projects_filtered: >-
+      {{
+        project_registry_projects_raw
+        | selectattr('project_env', 'defined')
+        | selectattr('project_env', 'equalto', project_registry_target_env)
+        | list
+      }}
+  when: project_registry_target_env | length > 0
+
+- name: Keep all projects when no target environment is specified
+  ansible.builtin.set_fact:
+    project_registry_projects_filtered: "{{ project_registry_projects_raw }}"
+  when: project_registry_target_env | length == 0
+
+- name: Optionally remove disabled projects
+  ansible.builtin.set_fact:
+    registry_projects: >-
+      {{
+        project_registry_projects_filtered
+        | selectattr('project_enabled', 'undefined')
+        | list
+        +
+        (
+          project_registry_projects_filtered
+          | selectattr('project_enabled', 'defined')
+          | selectattr('project_enabled', 'equalto', true)
+          | list
+        )
+      }}
+  when: project_registry_skip_disabled | bool
+
+- name: Keep filtered projects as registry output
+  ansible.builtin.set_fact:
+    registry_projects: "{{ project_registry_projects_filtered }}"
+  when: not (project_registry_skip_disabled | bool)
+
+- name: Expose registry projects to all plays
+  ansible.builtin.set_stats:
+    data:
+      registry_projects: "{{ registry_projects }}"
+
+- name: Show loaded registry projects
+  ansible.builtin.debug:
+    msg:
+      - "Environment: {{ project_registry_target_env | default('all') }}"
+      - "Loaded projects: {{ registry_projects | map(attribute='project_name') | list }}"

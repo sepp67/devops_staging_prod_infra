@@ -1,0 +1,28 @@
+---
+- name: Assert registry_projects is available
+  ansible.builtin.assert:
+    that:
+      - hostvars['localhost']['registry_projects'] is defined
+    fail_msg: "registry_projects is not available. Run project_registry on localhost first."
+
+- name: Assign current project for this host
+  ansible.builtin.set_fact:
+    current_project: >-
+      {{
+        (hostvars['localhost']['registry_projects'] | default([]))
+        | selectattr('project_vm', 'defined')
+        | selectattr('project_vm', 'equalto', inventory_hostname)
+        | list
+        | first
+        | default({})
+      }}
+
+- name: End host when no project is assigned
+  ansible.builtin.meta: end_host
+  when: current_project == {}
+
+- name: Show assigned project
+  ansible.builtin.debug:
+    msg:
+      - "Host: {{ inventory_hostname }}"
+      - "Assigned project: {{ current_project.project_name }}"

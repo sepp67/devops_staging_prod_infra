@@ -1,6 +1,125 @@
 ---
-- import_playbook: bootstrap-vm.yml
-- import_playbook: deploy-app.yml
-- import_playbook: configure-proxy.yml
-- import_playbook: configure-monitoring.yml
-- import_playbook: verify-app.yml
+- name: Build staging project registry
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - role: project_registry
+      vars:
+        project_registry_target_env: staging
+
+- name: Bootstrap and deploy staging application VMs
+  hosts: app_hosts
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Assign current staging project to this host
+      ansible.builtin.include_role:
+        name: project_registry
+      vars:
+        project_registry_assign_current_host: true
+
+    - name: Build normalized project context
+      ansible.builtin.include_role:
+        name: project_context
+
+  roles:
+    - role: base_linux
+    - role: docker_host
+    - role: monitoring_agent
+      when:
+        - project_monitoring_enabled | bool
+        - >
+          (project_node_exporter_enabled | bool)
+          or
+          (project_promtail_enabled | bool)
+    - role: app_image_deploy
+    - role: healthcheck
+      vars:
+        healthcheck_public_enabled: false
+
+- name: Publish staging sites on reverse proxy
+  hosts: proxies
+  become: true
+  gather_facts: true
+  vars:
+    registry_projects: "{{ hostvars['localhost']['registry_projects'] | default([]) }}"
+  tasks:
+    - name: Apply Caddy configuration for each staging project
+      ansible.builtin.include_role:
+        name: caddy_proxy
+      vars:
+        project_enabled: "{{ item.project_enabled | default(true) }}"
+        project_name: "{{ item.project_name }}"
+        project_key: "{{ item.project_key | default(item.project_name) }}"
+        project_env: "{{ item.project_env }}"
+        project_vm: "{{ item.project_vm }}"
+        project_domain: "{{ item.project_domain | default('') }}"
+        project_expose_via_proxy: "{{ item.project_expose_via_proxy | default(false) }}"
+        project_host_bind_port: "{{ item.project_host_bind_port }}"
+        project_healthcheck_path: "{{ item.project_healthcheck_path | default('/health') }}"
+      loop: "{{ registry_projects }}"
+      loop_control:
+        label: "{{ item.project_name }}"
+
+- name: Register staging monitoring targets
+  hosts: monitoring
+  become: true
+  gather_facts: true
+  vars:
+    registry_projects: "{{ hostvars['localhost']['registry_projects'] | default([]) }}"
+  tasks:
+    - name: Apply Prometheus node target for each staging project
+      ansible.builtin.include_role:
+        name: prometheus_target
+      vars:
+        project_enabled: "{{ item.project_enabled | default(true) }}"
+        project_name: "{{ item.project_name }}"
+        project_key: "{{ item.project_key | default(item.project_name) }}"
+        project_env: "{{ item.project_env }}"
+        project_vm: "{{ item.project_vm }}"
+        project_monitoring_enabled: "{{ item.project_monitoring_enabled | default(true) }}"
+        project_node_exporter_enabled: "{{ item.project_node_exporter_enabled | default(true) }}"
+        project_node_exporter_port: "{{ item.project_node_exporter_port | default(9100) }}"
+      loop: "{{ registry_projects }}"
+      loop_control:
+        label: "{{ item.project_name }}"
+
+    - name: Apply blackbox target for each staging project
+      ansible.builtin.include_role:
+        name: blackbox_target
+      vars:
+        project_enabled: "{{ item.project_enabled | default(true) }}"
+        project_name: "{{ item.project_name }}"
+        project_key: "{{ item.project_key | default(item.project_name) }}"
+        project_env: "{{ item.project_env }}"
+        project_vm: "{{ item.project_vm }}"
+        project_domain: "{{ item.project_domain | default('') }}"
+        project_monitoring_enabled: "{{ item.project_monitoring_enabled | default(true) }}"
+        project_expose_via_proxy: "{{ item.project_expose_via_proxy | default(false) }}"
+        project_healthcheck_enabled: "{{ item.project_healthcheck_enabled | default(true) }}"
+        project_healthcheck_path: "{{ item.project_healthcheck_path | default('/health') }}"
+      loop: "{{ registry_projects }}"
+      loop_control:
+        label: "{{ item.project_name }}"
+
+- name: Verify public staging endpoints
+  hosts: app_hosts
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Assign current staging project to this host
+      ansible.builtin.include_role:
+        name: project_registry
+      vars:
+        project_registry_assign_current_host: true
+
+    - name: Build normalized project context
+      ansible.builtin.include_role:
+        name: project_context
+
+  roles:
+    - role: healthcheck
+      vars:
+        healthcheck_public_enabled: "{{ project_expose_via_proxy | bool }}"

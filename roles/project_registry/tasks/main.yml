@@ -1,0 +1,8 @@
+---
+- name: Load and filter project registry on controller
+  ansible.builtin.include_tasks: load_projects.yml
+  when: not (project_registry_assign_current_host | bool)
+
+- name: Assign current host project from registry
+  ansible.builtin.include_tasks: assign_host_project.yml
+  when: project_registry_assign_current_host | bool

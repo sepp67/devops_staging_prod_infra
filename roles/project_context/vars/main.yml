@@ -1,0 +1,26 @@
+---
+project_context_defaults:
+  project_enabled: true
+  project_key: ""
+  project_type: web
+  project_domain: ""
+  project_expose_via_proxy: false
+
+  project_container_port: 8000
+  project_host_bind_ip: "127.0.0.1"
+  project_restart_policy: unless-stopped
+
+  project_env_vars: {}
+  project_volumes: []
+  project_networks: []
+  project_labels: {}
+  project_logs: []
+
+  project_healthcheck_enabled: false
+  project_healthcheck_path: /health
+  project_healthcheck_scheme: http
+
+  project_monitoring_enabled: true
+  project_node_exporter_enabled: true
+  project_promtail_enabled: true
+  project_node_exporter_port: 9100

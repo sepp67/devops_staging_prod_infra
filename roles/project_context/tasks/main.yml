@@ -1,0 +1,81 @@
+---
+- name: Assert project context source exists
+  ansible.builtin.assert:
+    that:
+      - vars[project_context_source_var] is defined
+      - vars[project_context_source_var] is mapping
+      - vars[project_context_source_var] | length > 0
+    fail_msg: "Project context source '{{ project_context_source_var }}' is missing or empty"
+  when: project_context_fail_if_missing | bool
+
+- name: Build effective project context
+  ansible.builtin.set_fact:
+    project_context_effective: >-
+      {{
+        project_context_defaults
+        | combine(vars[project_context_source_var], recursive=True)
+      }}
+
+- name: Assert required project fields are present
+  ansible.builtin.assert:
+    that:
+      - project_context_effective.project_name is defined
+      - project_context_effective.project_name | string | length > 0
+      - project_context_effective.project_env is defined
+      - project_context_effective.project_env | string | length > 0
+      - project_context_effective.project_vm is defined
+      - project_context_effective.project_vm | string | length > 0
+      - project_context_effective.project_host_bind_port is defined
+      - project_context_effective.project_host_bind_port | string | length > 0
+    fail_msg: "current_project is missing one of the required fields: project_name, project_env, project_vm, project_host_bind_port"
+
+- name: Publish normalized project facts
+  ansible.builtin.set_fact:
+    project_enabled: "{{ project_context_effective.project_enabled }}"
+    project_name: "{{ project_context_effective.project_name }}"
+    project_key: >-
+      {{
+        project_context_effective.project_key
+        if (project_context_effective.project_key | string | length > 0)
+        else project_context_effective.project_name
+      }}
+    project_env: "{{ project_context_effective.project_env }}"
+    project_vm: "{{ project_context_effective.project_vm }}"
+    project_type: "{{ project_context_effective.project_type }}"
+    project_domain: "{{ project_context_effective.project_domain }}"
+    project_expose_via_proxy: "{{ project_context_effective.project_expose_via_proxy }}"
+
+    project_image: "{{ project_context_effective.project_image | default('') }}"
+    project_container_name: >-
+      {{
+        project_context_effective.project_container_name
+        | default(project_context_effective.project_name)
+      }}
+    project_container_port: "{{ project_context_effective.project_container_port }}"
+    project_host_bind_ip: "{{ project_context_effective.project_host_bind_ip }}"
+    project_host_bind_port: "{{ project_context_effective.project_host_bind_port }}"
+    project_restart_policy: "{{ project_context_effective.project_restart_policy }}"
+
+    project_env_vars: "{{ project_context_effective.project_env_vars }}"
+    project_volumes: "{{ project_context_effective.project_volumes }}"
+    project_networks: "{{ project_context_effective.project_networks }}"
+    project_labels: "{{ project_context_effective.project_labels }}"
+    project_logs: "{{ project_context_effective.project_logs }}"
+
+    project_healthcheck_enabled: "{{ project_context_effective.project_healthcheck_enabled }}"
+    project_healthcheck_path: "{{ project_context_effective.project_healthcheck_path }}"
+    project_healthcheck_scheme: "{{ project_context_effective.project_healthcheck_scheme }}"
+
+    project_monitoring_enabled: "{{ project_context_effective.project_monitoring_enabled }}"
+    project_node_exporter_enabled: "{{ project_context_effective.project_node_exporter_enabled }}"
+    project_promtail_enabled: "{{ project_context_effective.project_promtail_enabled }}"
+    project_node_exporter_port: "{{ project_context_effective.project_node_exporter_port }}"
+
+- name: Show effective project context
+  ansible.builtin.debug:
+    msg:
+      - "Project: {{ project_name }}"
+      - "Environment: {{ project_env }}"
+      - "VM: {{ project_vm }}"
+      - "Proxy exposed: {{ project_expose_via_proxy }}"
+      - "Monitoring enabled: {{ project_monitoring_enabled }}"

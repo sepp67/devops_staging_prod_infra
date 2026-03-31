@@ -1,0 +1,2 @@
+---
+project_registry_search_path: "{{ project_registry_root }}/{{ project_registry_pattern }}"

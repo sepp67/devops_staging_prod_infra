@@ -1,0 +1,6 @@
+---
+project_registry_root: "{{ playbook_dir }}/../vars/projects"
+project_registry_pattern: "*.yml"
+project_registry_target_env: ""
+project_registry_assign_current_host: false
+project_registry_skip_disabled: false
