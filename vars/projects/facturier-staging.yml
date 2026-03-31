@@ -13,7 +13,7 @@ project_tls_mode: internal
 project_image: ghcr.io/sepp67/ansible-role-facturier_demo:0.3.1
 project_container_name: facturier
 project_container_port: 80
-project_host_bind_ip: 127.0.0.1
+project_host_bind_ip: 0.0.0.0
 project_host_bind_port: 18000
 project_restart_policy: unless-stopped
 
