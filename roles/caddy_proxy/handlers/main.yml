@@ -16,5 +16,4 @@
     files:
       - "{{ caddy_compose_filename }}"
     state: present
-    wait: true
-    wait_timeout: 60
+    timeout: 60
