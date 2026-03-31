@@ -1,4 +1,3 @@
----
 project_enabled: true
 
 project_name: facturier
@@ -11,23 +10,17 @@ project_domain: facturier.staging.local
 project_expose_via_proxy: true
 project_tls_mode: internal
 
-project_image: ghcr.io/sepp67/ansible-role-facturier_demo:0.3.1
+project_image: ghcr.io/sepp67/ansible-role-facturier_demo:0.3.0
 project_container_name: facturier
 project_container_port: 80
 project_host_bind_ip: 127.0.0.1
 project_host_bind_port: 18000
 project_restart_policy: unless-stopped
 
-project_env_vars:
-  APP_ENV: staging
-  APP_PORT: "8000"
-
-project_volumes:
-  - "/opt/apps/facturier/data:/app/data"
+project_env_vars: {}
+project_volumes: []
 
 project_healthcheck_enabled: false
-project_healthcheck_path: /
-project_healthcheck_scheme: http
 
 project_monitoring_enabled: true
 project_node_exporter_enabled: true
