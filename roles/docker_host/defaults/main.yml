@@ -12,6 +12,7 @@ docker_host_prereq_packages:
   - gnupg
 
 docker_host_repo_keyring_dir: /etc/apt/keyrings
+docker_host_repo_keyring_ascii_file: /etc/apt/keyrings/docker.asc
 docker_host_repo_keyring_file: /etc/apt/keyrings/docker.gpg
 docker_host_repo_url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}"
 docker_host_repo_arch: "{{ 'amd64' if ansible_architecture in ['x86_64', 'amd64'] else ansible_architecture }}"

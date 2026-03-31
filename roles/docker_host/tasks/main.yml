@@ -13,11 +13,20 @@
     group: root
     mode: "0755"
 
-- name: Download Docker GPG key
+- name: Download Docker ASCII GPG key
   ansible.builtin.get_url:
     url: "{{ docker_host_repo_url }}/gpg"
-    dest: "{{ docker_host_repo_keyring_file }}"
+    dest: "{{ docker_host_repo_keyring_ascii_file }}"
     mode: "0644"
+
+- name: Convert Docker ASCII GPG key to binary keyring
+  ansible.builtin.command:
+    cmd: >-
+      gpg --dearmor
+      --yes
+      --output {{ docker_host_repo_keyring_file }}
+      {{ docker_host_repo_keyring_ascii_file }}
+  changed_when: true
 
 - name: Add Docker apt repository
   ansible.builtin.apt_repository:
