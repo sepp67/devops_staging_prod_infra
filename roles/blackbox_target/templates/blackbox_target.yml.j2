@@ -1,0 +1,6 @@
+- targets:
+    - {{ blackbox_target_url | to_json }}
+  labels:
+{% for key, value in (blackbox_effective_labels | combine(blackbox_target_labels, recursive=True)) | dictsort %}
+    {{ key }}: {{ value | to_json }}
+{% endfor %}

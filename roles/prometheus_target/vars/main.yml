@@ -1,0 +1,9 @@
+---
+prometheus_target_host: "{{ hostvars[project_vm].ansible_host }}"
+prometheus_target_address: "{{ prometheus_target_host }}:{{ prometheus_node_exporter_port }}"
+prometheus_effective_labels:
+  job: node
+  host: "{{ project_vm }}"
+  environment: "{{ project_env }}"
+  project: "{{ project_key | default(project_name) }}"
+  role: app

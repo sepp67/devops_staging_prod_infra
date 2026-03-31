@@ -1,0 +1,27 @@
+---
+project_healthcheck_enabled: false
+project_healthcheck_scheme: http
+project_healthcheck_path: /health
+
+healthcheck_local_enabled: "{{ project_healthcheck_enabled | bool }}"
+healthcheck_public_enabled: >-
+  {{
+    (project_healthcheck_enabled | bool)
+    and
+    (project_expose_via_proxy | default(false) | bool)
+  }}
+
+healthcheck_local_host: 127.0.0.1
+healthcheck_local_port: "{{ project_host_bind_port | default(omit) }}"
+healthcheck_local_scheme: "{{ project_healthcheck_scheme }}"
+healthcheck_local_path: "{{ project_healthcheck_path }}"
+
+healthcheck_public_scheme: https
+healthcheck_public_host: "{{ project_domain | default(omit) }}"
+healthcheck_public_path: "{{ project_healthcheck_path }}"
+
+healthcheck_expected_status: 200
+healthcheck_validate_certs: false
+healthcheck_retries: 10
+healthcheck_delay: 6
+healthcheck_timeout: 10

@@ -1,0 +1,22 @@
+---
+caddy_email: admin@lavallee.tech
+
+caddy_dir: /opt/caddy
+caddy_compose_dir: "{{ caddy_dir }}"
+caddy_sites_dir: "{{ caddy_dir }}/sites-enabled"
+caddy_data_dir: "{{ caddy_dir }}/data"
+caddy_config_dir: "{{ caddy_dir }}/config"
+caddy_log_dir: /var/log/caddy
+
+caddy_container_name: caddy
+caddy_compose_filename: compose.yml
+caddy_main_config_filename: Caddyfile
+
+caddy_http_port: 80
+caddy_https_port: 443
+
+caddy_projects_root: "{{ playbook_dir }}/../vars/projects"
+caddy_project_definition_files: []
+
+caddy_remove_orphaned_site_configs: true
+caddy_validate_config: true

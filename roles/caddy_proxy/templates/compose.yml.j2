@@ -1,0 +1,14 @@
+services:
+  caddy:
+    image: caddy:2
+    container_name: {{ caddy_container_name | to_json }}
+    restart: unless-stopped
+    ports:
+      - "{{ caddy_http_port }}:80"
+      - "{{ caddy_https_port }}:443"
+    volumes:
+      - {{ (caddy_compose_dir ~ '/' ~ caddy_main_config_filename) | to_json }}:/etc/caddy/Caddyfile
+      - {{ caddy_sites_dir | to_json }}:/etc/caddy/sites-enabled
+      - {{ caddy_data_dir | to_json }}:/data
+      - {{ caddy_config_dir | to_json }}:/config
+      - {{ caddy_log_dir | to_json }}:/var/log/caddy

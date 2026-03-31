@@ -1,0 +1,14 @@
+---
+project_enabled: true
+project_monitoring_enabled: true
+project_expose_via_proxy: false
+project_healthcheck_enabled: true
+project_healthcheck_path: /health
+
+blackbox_file_sd_root: /etc/prometheus/file_sd
+blackbox_targets_dir: "{{ blackbox_file_sd_root }}/blackbox_targets"
+
+blackbox_scheme: https
+blackbox_target_labels: {}
+
+blackbox_target_filename: "{{ project_name }}-{{ project_env }}.yml"

@@ -1,8 +1,0 @@
----
-- name: Refresh facturier staging
-  hosts: vm_facturier_staging
-  become: true
-  roles:
-    - role: facturier_demo
-      vars:
-        facturier_demo_mode: refresh

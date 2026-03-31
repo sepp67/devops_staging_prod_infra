@@ -1,8 +1,0 @@
-[wordpress-auth]
-enabled  = true
-port     = http,https
-filter   = wordpress-auth
-logpath  = {{ caddy_log_path }}
-maxretry = {{ hardening_maxretry }}
-findtime = {{ hardening_findtime }}
-bantime  = {{ hardening_bantime }}

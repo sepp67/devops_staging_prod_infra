@@ -1,8 +1,0 @@
-- name: Level 1 - Single VM (Caddy + WordPress)
-  hosts: level1_single_vm
-  become: true
-
-  roles:
-    - common
-    - docker
-    - wordpress_single_vm

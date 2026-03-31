@@ -1,4 +1,0 @@
----
-loki_bind_address: 10.0.0.16
-grafana_bind_address: 10.0.0.16
-prometheus_bind_address: 10.0.0.16

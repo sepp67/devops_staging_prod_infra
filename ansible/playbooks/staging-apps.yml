@@ -1,7 +1,0 @@
----
-- name: Deploy all staging applications
-  hosts: staging_apps
-  become: true
-  roles:
-    - common
-    - docker

@@ -1,9 +1,0 @@
-fastapi
-uvicorn[standard]
-python-multipart
-pydantic
-lxml
-pypdf
-pdfplumber
-reportlab>=4.4.10
-factur-x>=3.8

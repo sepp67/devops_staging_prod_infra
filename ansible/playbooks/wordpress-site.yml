@@ -1,9 +1,0 @@
----
-- name: Deploy one WordPress backend
-  hosts: "{{ target_host | default('all') }}"
-  become: true
-
-  roles:
-    - common
-    - docker
-    - wordpress_backend

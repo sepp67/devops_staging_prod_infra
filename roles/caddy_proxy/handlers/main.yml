@@ -1,0 +1,20 @@
+---
+- name: Validate Caddy configuration
+  ansible.builtin.command:
+    cmd: docker exec {{ caddy_container_name }} caddy validate --config /etc/caddy/Caddyfile
+  changed_when: false
+  when: caddy_validate_config | bool
+
+- name: Reload Caddy configuration
+  ansible.builtin.command:
+    cmd: docker exec {{ caddy_container_name }} caddy reload --config /etc/caddy/Caddyfile
+  changed_when: true
+
+- name: Restart Caddy stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ caddy_compose_dir }}"
+    files:
+      - "{{ caddy_compose_filename }}"
+    state: present
+    wait: true
+    wait_timeout: 60

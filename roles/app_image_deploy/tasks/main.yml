@@ -1,0 +1,95 @@
+---
+- name: Skip deployment when project is disabled
+  ansible.builtin.meta: end_host
+  when: not (project_enabled | bool)
+
+- name: Validate required project variables
+  ansible.builtin.assert:
+    that:
+      - vars[item] is defined
+      - vars[item] | string | length > 0
+    fail_msg: "Variable required but missing or empty: {{ item }}"
+  loop: "{{ app_image_deploy_required_vars }}"
+
+- name: Ensure application base directory exists
+  ansible.builtin.file:
+    path: "{{ project_compose_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Ensure application data directories exist from bind mounts
+  ansible.builtin.file:
+    path: "{{ item.split(':')[0] }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ project_volumes }}"
+  when:
+    - project_volumes | length > 0
+    - item is match('^/')
+
+- name: Render environment file
+  ansible.builtin.template:
+    src: app.env.j2
+    dest: "{{ project_compose_dir }}/{{ project_env_filename }}"
+    owner: root
+    group: root
+    mode: "0640"
+  notify: Restart application stack
+
+- name: Render docker compose file
+  ansible.builtin.template:
+    src: docker-compose.app.yml.j2
+    dest: "{{ project_compose_dir }}/{{ project_compose_filename }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart application stack
+
+- name: Pull application image explicitly
+  community.docker.docker_image:
+    name: "{{ project_image }}"
+    source: pull
+  when: project_pull | bool
+
+- name: Deploy application stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ project_compose_dir }}"
+    files:
+      - "{{ project_compose_filename }}"
+    state: present
+    pull: "{{ 'always' if project_pull | bool else 'missing' }}"
+    remove_orphans: "{{ project_remove_orphans | bool }}"
+    wait: true
+    wait_timeout: "{{ project_wait_timeout }}"
+
+- name: Gather container information
+  community.docker.docker_container_info:
+    name: "{{ project_container_name }}"
+  register: app_container_info
+
+- name: Assert application container is running
+  ansible.builtin.assert:
+    that:
+      - app_container_info.exists
+      - app_container_info.container.State.Status == 'running'
+    fail_msg: "Container {{ project_container_name }} is not running after deployment"
+
+- name: Store local deployment metadata
+  ansible.builtin.copy:
+    dest: "{{ project_compose_dir }}/deployment-meta.yml"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      ---
+      project_name: {{ project_name }}
+      project_env: {{ project_env }}
+      project_image: {{ project_image }}
+      project_container_name: {{ project_container_name }}
+      project_container_port: {{ project_container_port }}
+      project_host_bind_ip: {{ project_host_bind_ip }}
+      project_host_bind_port: {{ project_host_bind_port }}

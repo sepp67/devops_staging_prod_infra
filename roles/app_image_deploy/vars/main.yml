@@ -1,0 +1,7 @@
+---
+app_image_deploy_required_vars:
+  - project_name
+  - project_env
+  - project_image
+  - project_container_port
+  - project_host_bind_port

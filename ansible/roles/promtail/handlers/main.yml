@@ -1,6 +1,0 @@
----
-- name: Restart promtail stack
-  ansible.builtin.command:
-    chdir: "{{ promtail_install_dir }}"
-    cmd: docker compose up -d
-  changed_when: true

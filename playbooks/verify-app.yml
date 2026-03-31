@@ -1,0 +1,10 @@
+---
+- name: Verify application
+  hosts: app_hosts
+  become: true
+  pre_tasks:
+    - name: Load project definition
+      include_vars:
+        file: "{{ project_definition_file }}"
+  roles:
+    - healthcheck

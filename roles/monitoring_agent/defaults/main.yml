@@ -1,0 +1,40 @@
+---
+project_monitoring_enabled: true
+project_promtail_enabled: true
+project_node_exporter_enabled: true
+
+monitoring_agent_user: promtail
+monitoring_agent_group: promtail
+
+monitoring_loki_url: "http://10.0.0.16:3100/loki/api/v1/push"
+
+monitoring_node_exporter_version: "1.8.2"
+monitoring_node_exporter_port: "{{ project_node_exporter_port | default(9100) }}"
+monitoring_node_exporter_listen_address: "0.0.0.0:{{ monitoring_node_exporter_port }}"
+
+monitoring_promtail_version: "3.0.0"
+monitoring_promtail_http_port: 9080
+monitoring_promtail_grpc_port: 0
+
+monitoring_install_dir: /usr/local/bin
+monitoring_config_dir: /etc/promtail
+monitoring_promtail_positions_dir: /var/lib/promtail
+monitoring_promtail_positions_file: "{{ monitoring_promtail_positions_dir }}/positions.yml"
+
+monitoring_promtail_system_job_name: system
+monitoring_promtail_custom_job_name: project_logs
+
+monitoring_promtail_extra_scrape_configs: []
+monitoring_promtail_extra_labels: {}
+
+monitoring_default_log_paths:
+  - /var/log/syslog
+  - /var/log/auth.log
+
+monitoring_project_log_paths: "{{ project_logs | default([]) }}"
+
+monitoring_promtail_labels:
+  host: "{{ inventory_hostname }}"
+  environment: "{{ project_env | default('unknown') }}"
+  project: "{{ project_key | default(project_name | default('none')) }}"
+  role: "{{ project_labels.role | default('app') if project_labels is defined else 'app' }}"

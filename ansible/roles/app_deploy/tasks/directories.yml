@@ -1,9 +1,0 @@
----
-- name: Ensure application directories exist
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    owner: "{{ app_user }}"
-    group: "{{ app_group }}"
-    mode: "0755"
-  loop: "{{ app_directories }}"

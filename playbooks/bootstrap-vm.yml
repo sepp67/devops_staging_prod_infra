@@ -1,0 +1,8 @@
+---
+- name: Bootstrap VM
+  hosts: all
+  become: true
+  roles:
+    - base_linux
+    - docker_host
+    - monitoring_agent

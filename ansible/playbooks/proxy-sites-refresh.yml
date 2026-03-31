@@ -1,9 +1,0 @@
----
-- name: Refresh proxy sites only
-  hosts: proxy
-  become: true
-
-  roles:
-    - role: caddy_proxy
-      vars:
-        caddy_proxy_mode: sites

@@ -1,7 +1,0 @@
----
-- name: Import Fail2ban tasks
-  ansible.builtin.import_tasks: fail2ban.yml
-  when: hardening_proxy_fail2ban_enabled
-
-- name: Import Caddy hardening tasks
-  ansible.builtin.import_tasks: caddy.yml

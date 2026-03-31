@@ -1,0 +1,29 @@
+---
+- name: Ensure Prometheus node target directory exists
+  ansible.builtin.file:
+    path: "{{ prometheus_node_targets_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Render Prometheus node target file
+  ansible.builtin.template:
+    src: node_target.yml.j2
+    dest: "{{ prometheus_node_targets_dir }}/{{ prometheus_target_filename }}"
+    owner: root
+    group: root
+    mode: "0644"
+  when:
+    - project_enabled | default(true) | bool
+    - project_monitoring_enabled | default(true) | bool
+    - project_node_exporter_enabled | default(true) | bool
+
+- name: Remove Prometheus node target file when disabled
+  ansible.builtin.file:
+    path: "{{ prometheus_node_targets_dir }}/{{ prometheus_target_filename }}"
+    state: absent
+  when:
+    - not (project_enabled | default(true) | bool)
+      or not (project_monitoring_enabled | default(true) | bool)
+      or not (project_node_exporter_enabled | default(true) | bool)

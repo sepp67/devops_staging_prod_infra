@@ -1,0 +1,8 @@
+---
+- name: Configure monitoring targets
+  hosts: monitoring
+  become: true
+  roles:
+    - project_registry
+    - prometheus_target
+    - blackbox_target

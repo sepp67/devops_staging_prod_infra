@@ -1,9 +1,0 @@
----
-- name: Deploy monitoring stack
-  hosts: monitoring
-  become: true
-
-  roles:
-    - common
-    - docker
-    - monitoring_stack

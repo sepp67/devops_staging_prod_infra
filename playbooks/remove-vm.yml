@@ -1,0 +1,15 @@
+---
+- name: Remove site from proxy
+  hosts: proxies
+  become: true
+  roles:
+    - project_registry
+    - caddy_proxy
+
+- name: Remove monitoring targets
+  hosts: monitoring
+  become: true
+  roles:
+    - project_registry
+    - prometheus_target
+    - blackbox_target

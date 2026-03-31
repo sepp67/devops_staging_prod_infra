@@ -1,0 +1,11 @@
+---
+- name: Deploy application image
+  hosts: app_hosts
+  become: true
+  pre_tasks:
+    - name: Load project definition
+      include_vars:
+        file: "{{ project_definition_file }}"
+  roles:
+    - app_image_deploy
+    - healthcheck

@@ -1,8 +1,0 @@
----
-- name: Run proxy bootstrap tasks
-  import_tasks: bootstrap.yml
-  when: caddy_proxy_mode | default('bootstrap') == 'bootstrap'
-
-- name: Run proxy sites refresh tasks
-  import_tasks: sites.yml
-  when: caddy_proxy_mode | default('bootstrap') == 'sites'

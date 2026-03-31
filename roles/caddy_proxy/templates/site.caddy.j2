@@ -1,0 +1,16 @@
+{{ project_domain }} {
+  encode gzip
+
+  log {
+    output file {{ caddy_log_dir }}/{{ project_name }}.access.log {
+      roll_size 10MiB
+      roll_keep 10
+      roll_keep_for 720h
+    }
+    format json
+  }
+
+  reverse_proxy {{ project_upstream }} {
+    health_uri {{ project_healthcheck_path }}
+  }
+}

@@ -1,6 +1,0 @@
----
-promtail_install_dir: /opt/promtail
-promtail_http_port: 9080
-promtail_container_name: promtail
-promtail_loki_url: "http://127.0.0.1:3100/loki/api/v1/push"
-promtail_host_label: "{{ inventory_hostname }}"

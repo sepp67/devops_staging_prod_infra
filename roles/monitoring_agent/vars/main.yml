@@ -1,0 +1,9 @@
+---
+monitoring_node_exporter_archive: "node_exporter-{{ monitoring_node_exporter_version }}.linux-amd64.tar.gz"
+monitoring_node_exporter_extract_dir: "node_exporter-{{ monitoring_node_exporter_version }}.linux-amd64"
+monitoring_node_exporter_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ monitoring_node_exporter_version }}/{{ monitoring_node_exporter_archive }}"
+
+monitoring_promtail_archive: "promtail-linux-amd64.zip"
+monitoring_promtail_url: "https://github.com/grafana/loki/releases/download/v{{ monitoring_promtail_version }}/{{ monitoring_promtail_archive }}"
+
+monitoring_promtail_all_log_paths: "{{ (monitoring_default_log_paths + monitoring_project_log_paths) | unique }}"

@@ -1,0 +1,6 @@
+---
+healthcheck_local_url: >-
+  {{ healthcheck_local_scheme }}://{{ healthcheck_local_host }}:{{ healthcheck_local_port }}{{ healthcheck_local_path }}
+
+healthcheck_public_url: >-
+  {{ healthcheck_public_scheme }}://{{ healthcheck_public_host }}{{ healthcheck_public_path }}

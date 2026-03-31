@@ -1,0 +1,39 @@
+- name: Bootstrap and deploy application on new VM
+  hosts: "{{ target_host }}"
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Validate required extra vars
+      ansible.builtin.assert:
+        that:
+          - target_host is defined
+          - target_host | length > 0
+          - project_definition_file is defined
+          - project_definition_file | length > 0
+        fail_msg: "You must provide target_host and project_definition_file"
+
+    - name: Load project definition
+      ansible.builtin.include_vars:
+        file: "{{ project_definition_file }}"
+
+    - name: Check project belongs to this host
+      ansible.builtin.assert:
+        that:
+          - project_vm is defined
+          - project_vm == inventory_hostname
+        fail_msg: "Project file {{ project_definition_file }} is not meant for host {{ inventory_hostname }}"
+
+  roles:
+    - role: base_linux
+    - role: docker_host
+    - role: monitoring_agent
+      when:
+        - project_monitoring_enabled | default(true) | bool
+        - (
+            project_node_exporter_enabled | default(true) | bool
+            or
+            project_promtail_enabled | default(true) | bool
+          )
+    - role: app_image_deploy
+    - role: healthcheck

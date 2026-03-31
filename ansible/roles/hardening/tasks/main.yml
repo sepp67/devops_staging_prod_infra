@@ -1,6 +1,0 @@
-- name: Include fail2ban setup
-  import_tasks: fail2ban.yml
-  when: hardening_fail2ban_enabled
-
-- name: Include Caddy hardening
-  import_tasks: caddy.yml

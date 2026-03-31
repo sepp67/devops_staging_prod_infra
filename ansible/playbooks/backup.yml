@@ -1,5 +1,0 @@
-- name: DB backup on WordPress nodes
-  hosts: wordpress_vms
-  become: true
-  roles:
-    - db_backup

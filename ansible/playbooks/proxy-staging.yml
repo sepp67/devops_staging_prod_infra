@@ -1,8 +1,0 @@
----
-- name: Configure staging proxy
-  hosts: proxy_staging
-  become: true
-  roles:
-    - common
-    - docker
-    - caddy_proxy

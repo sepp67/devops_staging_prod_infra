@@ -1,0 +1,63 @@
+---
+- name: Skip health checks when disabled
+  ansible.builtin.meta: end_host
+  when: not (project_healthcheck_enabled | bool)
+
+- name: Assert local health check port is defined
+  ansible.builtin.assert:
+    that:
+      - healthcheck_local_port is defined
+      - healthcheck_local_port | string | length > 0
+    fail_msg: "healthcheck_local_port is required for local health checks"
+  when: healthcheck_local_enabled | bool
+
+- name: Wait for local application port to become reachable
+  ansible.builtin.wait_for:
+    host: "{{ healthcheck_local_host }}"
+    port: "{{ healthcheck_local_port | int }}"
+    timeout: "{{ healthcheck_timeout }}"
+    delay: 0
+  when: healthcheck_local_enabled | bool
+
+- name: Check local application health endpoint
+  ansible.builtin.uri:
+    url: "{{ healthcheck_local_url }}"
+    method: GET
+    status_code: "{{ healthcheck_expected_status }}"
+    return_content: true
+    timeout: "{{ healthcheck_timeout }}"
+  register: local_healthcheck_result
+  retries: "{{ healthcheck_retries }}"
+  delay: "{{ healthcheck_delay }}"
+  until: local_healthcheck_result.status == (healthcheck_expected_status | int)
+  when: healthcheck_local_enabled | bool
+
+- name: Show local health check result
+  ansible.builtin.debug:
+    msg:
+      - "Local health check OK"
+      - "URL: {{ healthcheck_local_url }}"
+      - "HTTP status: {{ local_healthcheck_result.status }}"
+  when: healthcheck_local_enabled | bool
+
+- name: Check public application health endpoint
+  ansible.builtin.uri:
+    url: "{{ healthcheck_public_url }}"
+    method: GET
+    status_code: "{{ healthcheck_expected_status }}"
+    return_content: true
+    timeout: "{{ healthcheck_timeout }}"
+    validate_certs: "{{ healthcheck_validate_certs | bool }}"
+  register: public_healthcheck_result
+  retries: "{{ healthcheck_retries }}"
+  delay: "{{ healthcheck_delay }}"
+  until: public_healthcheck_result.status == (healthcheck_expected_status | int)
+  when: healthcheck_public_enabled | bool
+
+- name: Show public health check result
+  ansible.builtin.debug:
+    msg:
+      - "Public health check OK"
+      - "URL: {{ healthcheck_public_url }}"
+      - "HTTP status: {{ public_healthcheck_result.status }}"
+  when: healthcheck_public_enabled | bool

@@ -1,0 +1,78 @@
+---
+- name: Ensure Caddy base directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - "{{ caddy_compose_dir }}"
+    - "{{ caddy_sites_dir }}"
+    - "{{ caddy_data_dir }}"
+    - "{{ caddy_config_dir }}"
+    - "{{ caddy_log_dir }}"
+
+- name: Render Caddy docker compose file
+  ansible.builtin.template:
+    src: compose.yml.j2
+    dest: "{{ caddy_compose_dir }}/{{ caddy_compose_filename }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Caddy stack
+
+- name: Render main Caddyfile
+  ansible.builtin.template:
+    src: Caddyfile.j2
+    dest: "{{ caddy_compose_dir }}/{{ caddy_main_config_filename }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Validate Caddy configuration
+    - Reload Caddy configuration
+
+- name: Ensure Caddy stack is started
+  community.docker.docker_compose_v2:
+    project_src: "{{ caddy_compose_dir }}"
+    files:
+      - "{{ caddy_compose_filename }}"
+    state: present
+    wait: true
+    wait_timeout: 60
+
+- name: Build upstream address for current project
+  ansible.builtin.set_fact:
+    project_upstream: "{{ hostvars[project_vm].ansible_host }}:{{ project_host_bind_port }}"
+  when:
+    - project_enabled | default(true) | bool
+    - project_expose_via_proxy | default(false) | bool
+
+- name: Render per-project Caddy site file
+  ansible.builtin.template:
+    src: site.caddy.j2
+    dest: "{{ caddy_sites_dir }}/{{ project_name }}.caddy"
+    owner: root
+    group: root
+    mode: "0644"
+  when:
+    - project_enabled | default(true) | bool
+    - project_expose_via_proxy | default(false) | bool
+  notify:
+    - Validate Caddy configuration
+    - Reload Caddy configuration
+
+- name: Remove per-project Caddy site file when project is disabled
+  ansible.builtin.file:
+    path: "{{ caddy_sites_dir }}/{{ project_name }}.caddy"
+    state: absent
+  when:
+    - not (project_enabled | default(true) | bool)
+      or not (project_expose_via_proxy | default(false) | bool)
+  notify:
+    - Validate Caddy configuration
+    - Reload Caddy configuration
+
+- name: Flush handlers now
+  ansible.builtin.meta: flush_handlers

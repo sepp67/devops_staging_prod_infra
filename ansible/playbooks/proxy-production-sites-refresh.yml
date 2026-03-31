@@ -1,8 +1,0 @@
----
-- name: Refresh production proxy sites
-  hosts: proxy_prod
-  become: true
-  vars:
-    caddy_proxy_mode: sites
-  roles:
-    - caddy_proxy

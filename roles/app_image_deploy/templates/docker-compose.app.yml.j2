@@ -1,0 +1,31 @@
+services:
+  app:
+    image: {{ project_image | to_json }}
+    container_name: {{ project_container_name | to_json }}
+    restart: {{ project_restart_policy | to_json }}
+    env_file:
+      - {{ project_env_filename | to_json }}
+    ports:
+      - "{{ project_host_bind_ip }}:{{ project_host_bind_port }}:{{ project_container_port }}"
+{% if project_volumes | length > 0 %}
+    volumes:
+{% for volume in project_volumes %}
+      - {{ volume | to_json }}
+{% endfor %}
+{% endif %}
+{% if project_labels | length > 0 %}
+    labels:
+{% for key, value in project_labels | dictsort %}
+      {{ key }}: {{ value | to_json }}
+{% endfor %}
+{% endif %}
+{% if project_healthcheck_enabled | bool %}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "wget -q -O - {{ project_healthcheck_scheme }}://127.0.0.1:{{ project_container_port }}{{ project_healthcheck_path }} || exit 1"
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+{% endif %}

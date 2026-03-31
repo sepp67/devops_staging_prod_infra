@@ -1,5 +1,0 @@
-db_backup_enabled: true
-db_backup_dir: /opt/backups/mysql
-db_backup_retention_days: 14
-db_backup_time_hour: "2"
-db_backup_time_minute: "30"

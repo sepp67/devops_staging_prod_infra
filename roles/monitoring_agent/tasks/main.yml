@@ -1,0 +1,176 @@
+---
+- name: Skip monitoring agent setup when monitoring is disabled
+  ansible.builtin.meta: end_host
+  when: not (project_monitoring_enabled | default(true) | bool)
+
+- name: Install required packages
+  ansible.builtin.apt:
+    name:
+      - curl
+      - unzip
+      - tar
+    state: present
+    update_cache: true
+
+- name: Ensure promtail group exists
+  ansible.builtin.group:
+    name: "{{ monitoring_agent_group }}"
+    state: present
+  when: project_promtail_enabled | default(true) | bool
+
+- name: Ensure promtail user exists
+  ansible.builtin.user:
+    name: "{{ monitoring_agent_user }}"
+    group: "{{ monitoring_agent_group }}"
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+    state: present
+  when: project_promtail_enabled | default(true) | bool
+
+- name: Ensure promtail configuration directory exists
+  ansible.builtin.file:
+    path: "{{ monitoring_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: project_promtail_enabled | default(true) | bool
+
+- name: Ensure promtail positions directory exists
+  ansible.builtin.file:
+    path: "{{ monitoring_promtail_positions_dir }}"
+    state: directory
+    owner: "{{ monitoring_agent_user }}"
+    group: "{{ monitoring_agent_group }}"
+    mode: "0755"
+  when: project_promtail_enabled | default(true) | bool
+
+- name: Download node_exporter archive
+  ansible.builtin.get_url:
+    url: "{{ monitoring_node_exporter_url }}"
+    dest: "/tmp/{{ monitoring_node_exporter_archive }}"
+    mode: "0644"
+  when: project_node_exporter_enabled | default(true) | bool
+
+- name: Extract node_exporter archive
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ monitoring_node_exporter_archive }}"
+    dest: /tmp
+    remote_src: true
+  when: project_node_exporter_enabled | default(true) | bool
+
+- name: Install node_exporter binary
+  ansible.builtin.copy:
+    src: "/tmp/{{ monitoring_node_exporter_extract_dir }}/node_exporter"
+    dest: "{{ monitoring_install_dir }}/node_exporter"
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0755"
+  when: project_node_exporter_enabled | default(true) | bool
+  notify: Restart node_exporter
+
+- name: Install node_exporter systemd unit
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/node_exporter.service
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Prometheus Node Exporter
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      User=root
+      Group=root
+      Type=simple
+      ExecStart={{ monitoring_install_dir }}/node_exporter --web.listen-address={{ monitoring_node_exporter_listen_address }}
+      Restart=always
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+  when: project_node_exporter_enabled | default(true) | bool
+  notify: Restart node_exporter
+
+- name: Ensure node_exporter is enabled and started
+  ansible.builtin.systemd:
+    name: node_exporter
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: project_node_exporter_enabled | default(true) | bool
+
+- name: Download promtail archive
+  ansible.builtin.get_url:
+    url: "{{ monitoring_promtail_url }}"
+    dest: "/tmp/{{ monitoring_promtail_archive }}"
+    mode: "0644"
+  when: project_promtail_enabled | default(true) | bool
+
+- name: Extract promtail archive
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ monitoring_promtail_archive }}"
+    dest: /tmp
+    remote_src: true
+  when: project_promtail_enabled | default(true) | bool
+
+- name: Install promtail binary
+  ansible.builtin.copy:
+    src: /tmp/promtail-linux-amd64
+    dest: "{{ monitoring_install_dir }}/promtail"
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0755"
+  when: project_promtail_enabled | default(true) | bool
+  notify: Restart promtail
+
+- name: Render promtail configuration
+  ansible.builtin.template:
+    src: promtail-config.yml.j2
+    dest: "{{ monitoring_config_dir }}/config.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  when: project_promtail_enabled | default(true) | bool
+  notify: Restart promtail
+
+- name: Install promtail systemd unit
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/promtail.service
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Promtail
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      User={{ monitoring_agent_user }}
+      Group={{ monitoring_agent_group }}
+      Type=simple
+      ExecStart={{ monitoring_install_dir }}/promtail -config.file={{ monitoring_config_dir }}/config.yml
+      Restart=always
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+  when: project_promtail_enabled | default(true) | bool
+  notify: Restart promtail
+
+- name: Ensure promtail is enabled and started
+  ansible.builtin.systemd:
+    name: promtail
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: project_promtail_enabled | default(true) | bool
+
+- name: Flush monitoring handlers
+  ansible.builtin.meta: flush_handlers

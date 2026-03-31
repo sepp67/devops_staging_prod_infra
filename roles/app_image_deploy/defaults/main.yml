@@ -1,0 +1,31 @@
+---
+project_enabled: true
+
+project_name: ""
+project_key: ""
+project_env: ""
+project_vm: ""
+
+project_image: ""
+project_container_name: "{{ project_name }}"
+project_container_port: 8000
+project_host_bind_ip: "127.0.0.1"
+project_host_bind_port: 18000
+project_restart_policy: "unless-stopped"
+
+project_env_vars: {}
+project_volumes: []
+project_networks: []
+project_labels: {}
+
+project_healthcheck_enabled: false
+project_healthcheck_path: "/health"
+project_healthcheck_scheme: "http"
+
+project_compose_dir: "/opt/apps/{{ project_name }}"
+project_compose_filename: "compose.yml"
+project_env_filename: ".env"
+
+project_pull: true
+project_remove_orphans: true
+project_wait_timeout: 60

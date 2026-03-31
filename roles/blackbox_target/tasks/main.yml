@@ -1,0 +1,31 @@
+---
+- name: Ensure Prometheus blackbox target directory exists
+  ansible.builtin.file:
+    path: "{{ blackbox_targets_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Render Prometheus blackbox target file
+  ansible.builtin.template:
+    src: blackbox_target.yml.j2
+    dest: "{{ blackbox_targets_dir }}/{{ blackbox_target_filename }}"
+    owner: root
+    group: root
+    mode: "0644"
+  when:
+    - project_enabled | default(true) | bool
+    - project_monitoring_enabled | default(true) | bool
+    - project_expose_via_proxy | default(false) | bool
+    - project_healthcheck_enabled | default(true) | bool
+
+- name: Remove Prometheus blackbox target file when disabled
+  ansible.builtin.file:
+    path: "{{ blackbox_targets_dir }}/{{ blackbox_target_filename }}"
+    state: absent
+  when:
+    - not (project_enabled | default(true) | bool)
+      or not (project_monitoring_enabled | default(true) | bool)
+      or not (project_expose_via_proxy | default(false) | bool)
+      or not (project_healthcheck_enabled | default(true) | bool)

@@ -1,9 +1,0 @@
-- name: restart fail2ban
-  ansible.builtin.systemd:
-    name: fail2ban
-    state: restarted
-
-- name: reload caddy
-  ansible.builtin.systemd:
-    name: caddy
-    state: reloaded

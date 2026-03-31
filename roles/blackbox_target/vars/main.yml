@@ -1,0 +1,9 @@
+---
+blackbox_target_url: "{{ blackbox_scheme }}://{{ project_domain }}{{ project_healthcheck_path }}"
+blackbox_effective_labels:
+  job: blackbox_https
+  host: "{{ project_vm }}"
+  environment: "{{ project_env }}"
+  project: "{{ project_key | default(project_name) }}"
+  role: app
+  domain: "{{ project_domain }}"

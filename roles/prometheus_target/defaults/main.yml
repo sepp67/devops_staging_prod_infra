@@ -1,0 +1,12 @@
+---
+project_enabled: true
+project_monitoring_enabled: true
+project_node_exporter_enabled: true
+
+prometheus_file_sd_root: /etc/prometheus/file_sd
+prometheus_node_targets_dir: "{{ prometheus_file_sd_root }}/node_targets"
+
+prometheus_node_exporter_port: "{{ project_node_exporter_port | default(9100) }}"
+prometheus_target_labels: {}
+
+prometheus_target_filename: "{{ project_name }}-{{ project_env }}.yml"

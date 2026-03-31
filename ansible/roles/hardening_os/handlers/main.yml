@@ -1,9 +1,0 @@
-- name: restart fail2ban
-  ansible.builtin.systemd:
-    name: fail2ban
-    state: restarted
-
-- name: restart ssh
-  ansible.builtin.systemd:
-    name: ssh
-    state: restarted
