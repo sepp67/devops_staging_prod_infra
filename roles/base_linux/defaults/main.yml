@@ -1,0 +1,17 @@
+---
+base_linux_packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - git
+  - gnupg
+  - htop
+  - jq
+  - lsb-release
+  - rsync
+  - sudo
+  - vim
+
+base_linux_timezone: "Europe/Paris"
+base_linux_update_cache: true
+base_linux_upgrade_packages: false

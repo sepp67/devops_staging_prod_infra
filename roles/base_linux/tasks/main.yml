@@ -1,0 +1,21 @@
+---
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  when: base_linux_update_cache | bool
+
+- name: Optionally upgrade installed packages
+  ansible.builtin.apt:
+    upgrade: dist
+  when: base_linux_upgrade_packages | bool
+
+- name: Install base Linux packages
+  ansible.builtin.apt:
+    name: "{{ base_linux_packages }}"
+    state: present
+
+- name: Set timezone via timedatectl
+  ansible.builtin.command:
+    cmd: "timedatectl set-timezone {{ base_linux_timezone }}"
+  changed_when: false
