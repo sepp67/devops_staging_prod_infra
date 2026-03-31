@@ -44,6 +44,7 @@
     project_type: "{{ project_context_effective.project_type }}"
     project_domain: "{{ project_context_effective.project_domain }}"
     project_expose_via_proxy: "{{ project_context_effective.project_expose_via_proxy }}"
+    project_tls_mode: "{{ project_context_effective.project_tls_mode }}"
 
     project_image: "{{ project_context_effective.project_image | default('') }}"
     project_container_name: >-

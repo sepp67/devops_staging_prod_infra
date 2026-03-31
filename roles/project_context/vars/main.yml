@@ -9,6 +9,7 @@ project_context_defaults:
   project_container_port: 8000
   project_host_bind_ip: "127.0.0.1"
   project_restart_policy: unless-stopped
+  project_tls_mode: public
 
   project_env_vars: {}
   project_volumes: []

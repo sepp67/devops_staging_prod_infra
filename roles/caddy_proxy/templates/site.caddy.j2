@@ -1,4 +1,8 @@
 {{ project_domain }} {
+{% if project_tls_mode | default('public') == 'internal' %}
+  tls internal
+{% endif %}
+
   encode gzip
 
   log {
