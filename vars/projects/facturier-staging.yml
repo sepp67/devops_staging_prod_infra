@@ -25,7 +25,7 @@ project_env_vars:
 project_volumes:
   - "/opt/apps/facturier/data:/app/data"
 
-project_healthcheck_enabled: true
+project_healthcheck_enabled: false
 project_healthcheck_path: /
 project_healthcheck_scheme: http
 
