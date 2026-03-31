@@ -1,17 +1,11 @@
-# Secrets / env
-deploy/env/*.env
-deploy/env/*.env.*
-ansible/**/*.vault
-
-# Ansible local
-*.retry
-ansible/.cache/
-ansible/tmp/
-
-# OS / editor
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+.venv/
+*.pdf
+*.xml
+*.log
 .DS_Store
-.idea/
-.vscode/
-
-#ansible/inventory/group_vars/all.yml 
-les_vars/*

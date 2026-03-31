@@ -1,0 +1,6 @@
+sites_secrets:
+  lavallee:
+    wp_db_name: wp_lavallee
+    wp_db_user: super_sebik123
+    wp_db_password: "PewCQibfD2VG"
+    wp_db_root_password: "yWcfHutO3AJe"
