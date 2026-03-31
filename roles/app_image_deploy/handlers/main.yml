@@ -3,5 +3,4 @@
   community.docker.docker_compose_v2:
     project_src: "{{ project_compose_dir }}"
     state: restarted
-    wait: true
-    wait_timeout: "{{ project_wait_timeout }}"
+    timeout: "{{ project_wait_timeout }}"

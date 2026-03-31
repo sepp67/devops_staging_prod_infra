@@ -63,8 +63,7 @@
     state: present
     pull: "{{ 'always' if project_pull | bool else 'missing' }}"
     remove_orphans: "{{ project_remove_orphans | bool }}"
-    wait: true
-    wait_timeout: "{{ project_wait_timeout }}"
+    timeout: "{{ project_wait_timeout }}"
 
 - name: Gather container information
   community.docker.docker_container_info:
