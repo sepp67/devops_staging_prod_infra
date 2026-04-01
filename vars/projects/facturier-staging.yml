@@ -16,6 +16,7 @@ project_container_port: 80
 project_host_bind_ip: 0.0.0.0
 project_host_bind_port: 18000
 project_restart_policy: unless-stopped
+project_healthcheck_path: /
 
 project_env_vars: {}
 project_volumes: []
