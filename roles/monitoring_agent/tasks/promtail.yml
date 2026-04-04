@@ -57,12 +57,39 @@
     remote_src: true
   notify: Restart promtail
 
-- name: Deploy promtail configuration
+- name: Ensure promtail group exists
+  ansible.builtin.group:
+    name: promtail
+    system: true
+    state: present
+
+- name: Ensure promtail user exists
+  ansible.builtin.user:
+    name: promtail
+    group: promtail
+    system: true
+    create_home: false
+    home: /nonexistent
+    shell: /usr/sbin/nologin
+    state: present
+
+- name: Ensure Promtail directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: promtail
+    group: promtail
+    mode: "0755"
+  loop:
+    - /etc/promtail
+    - /var/lib/promtail
+
+- name: Deploy Promtail configuration
   ansible.builtin.template:
-    src: promtail-config.yml.j2
-    dest: "{{ promtail_config_path }}"
-    owner: root
-    group: root
+    src: promtail.yml.j2
+    dest: /etc/promtail/config.yml
+    owner: promtail
+    group: promtail
     mode: "0644"
   notify: Restart promtail
 
@@ -77,6 +104,12 @@
 
 - name: Flush handlers for promtail
   ansible.builtin.meta: flush_handlers
+
+- name: Ensure Promtail binary is executable
+  ansible.builtin.file:
+    path: /usr/local/bin/promtail
+    mode: "0755"
+    state: file
 
 - name: Ensure promtail service is enabled and started
   ansible.builtin.systemd:
