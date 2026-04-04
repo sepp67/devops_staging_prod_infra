@@ -1,0 +1,23 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /var/lib/promtail/positions.yaml
+
+clients:
+  - url: {{ promtail_loki_url }}
+
+scrape_configs:
+{% if promtail_scrape_configs | length > 0 %}
+{{ promtail_scrape_configs | to_nice_yaml(indent=2) | indent(2, true) }}
+{% else %}
+  - job_name: varlogs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          host: {{ inventory_hostname }}
+          __path__: /var/log/*.log
+{% endif %}
