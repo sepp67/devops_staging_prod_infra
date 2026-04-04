@@ -12,6 +12,10 @@ monitoring_node_exporter_version: "1.8.2"
 monitoring_node_exporter_port: "{{ project_node_exporter_port | default(9100) }}"
 monitoring_node_exporter_listen_address: "0.0.0.0:{{ monitoring_node_exporter_port }}"
 
+node_exporter_version: "1.8.2"
+node_exporter_arch: "linux-amd64"
+node_exporter_tmp_dir: "/tmp"
+
 monitoring_promtail_version: "3.0.0"
 monitoring_promtail_http_port: 9080
 monitoring_promtail_grpc_port: 0
