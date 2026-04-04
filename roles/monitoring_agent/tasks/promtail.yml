@@ -63,6 +63,12 @@
     system: true
     state: present
 
+- name: Add promtail to adm group
+  ansible.builtin.user:
+    name: promtail
+    groups: adm
+    append: true    
+
 - name: Ensure promtail user exists
   ansible.builtin.user:
     name: promtail
@@ -117,3 +123,5 @@
     enabled: true
     state: started
     daemon_reload: true
+
+    
