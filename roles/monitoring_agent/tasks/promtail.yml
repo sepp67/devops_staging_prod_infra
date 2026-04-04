@@ -67,7 +67,14 @@
   ansible.builtin.user:
     name: promtail
     groups: adm
-    append: true    
+    append: true  
+
+- name: Ensure Caddy logs are readable by adm group
+  ansible.builtin.file:
+    path: "{{ item }}"
+    group: adm
+    mode: "0640"
+  loop: "{{ lookup('ansible.builtin.fileglob', '/var/log/caddy/*.access.log', wantlist=True) }}"  
 
 - name: Ensure promtail user exists
   ansible.builtin.user:
