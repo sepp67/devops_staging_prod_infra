@@ -1,44 +1,47 @@
 ---
-project_monitoring_enabled: true
-project_promtail_enabled: true
-project_node_exporter_enabled: true
+monitoring_agent_manage_node_exporter: true
+monitoring_agent_manage_promtail: false
 
-monitoring_agent_user: promtail
-monitoring_agent_group: promtail
+monitoring_agent_system_group: monitoring
+monitoring_agent_system_user: monitoring
 
-monitoring_loki_url: "http://10.0.0.16:3100/loki/api/v1/push"
-
-monitoring_node_exporter_version: "1.8.2"
-monitoring_node_exporter_port: "{{ project_node_exporter_port | default(9100) }}"
-monitoring_node_exporter_listen_address: "0.0.0.0:{{ monitoring_node_exporter_port }}"
-
+node_exporter_enabled: true
 node_exporter_version: "1.8.2"
 node_exporter_arch: "linux-amd64"
+node_exporter_download_base_url: "https://github.com/prometheus/node_exporter/releases/download"
+node_exporter_archive_name: "node_exporter-{{ node_exporter_version }}.{{ node_exporter_arch }}.tar.gz"
+node_exporter_extract_dir_name: "node_exporter-{{ node_exporter_version }}.{{ node_exporter_arch }}"
+node_exporter_download_url: "{{ node_exporter_download_base_url }}/v{{ node_exporter_version }}/{{ node_exporter_archive_name }}"
 node_exporter_tmp_dir: "/tmp"
+node_exporter_archive_path: "{{ node_exporter_tmp_dir }}/{{ node_exporter_archive_name }}"
+node_exporter_extract_path: "{{ node_exporter_tmp_dir }}/{{ node_exporter_extract_dir_name }}"
+node_exporter_binary_src: "{{ node_exporter_extract_path }}/node_exporter"
+node_exporter_binary_path: "/usr/local/bin/node_exporter"
+node_exporter_web_listen_address: ":9100"
+node_exporter_extra_args: []
+node_exporter_textfile_dir: "/var/lib/node_exporter/textfile_collector"
+node_exporter_create_textfile_dir: true
 
-monitoring_promtail_version: "3.0.0"
-monitoring_promtail_http_port: 9080
-monitoring_promtail_grpc_port: 0
+promtail_enabled: false
+promtail_version: "3.0.0"
+promtail_arch: "linux-amd64"
+promtail_download_base_url: "https://github.com/grafana/loki/releases/download"
+promtail_zip_name: "promtail-{{ promtail_arch }}.zip"
+promtail_download_url: "{{ promtail_download_base_url }}/v{{ promtail_version }}/{{ promtail_zip_name }}"
+promtail_tmp_dir: "/tmp"
+promtail_zip_path: "{{ promtail_tmp_dir }}/{{ promtail_zip_name }}"
+promtail_extract_dir: "{{ promtail_tmp_dir }}/promtail-{{ promtail_version }}"
+promtail_binary_src: "{{ promtail_extract_dir }}/promtail-{{ promtail_arch }}"
+promtail_binary_path: "/usr/local/bin/promtail"
+promtail_config_dir: "/etc/promtail"
+promtail_config_path: "{{ promtail_config_dir }}/config.yml"
+promtail_positions_path: "/var/lib/promtail/positions.yaml"
+promtail_loki_url: "http://127.0.0.1:3100/loki/api/v1/push"
+promtail_scrape_configs: []
+promtail_extra_args: []
 
-monitoring_install_dir: /usr/local/bin
-monitoring_config_dir: /etc/promtail
-monitoring_promtail_positions_dir: /var/lib/promtail
-monitoring_promtail_positions_file: "{{ monitoring_promtail_positions_dir }}/positions.yml"
+monitoring_agent_required_packages:
+  - tar
 
-monitoring_promtail_system_job_name: system
-monitoring_promtail_custom_job_name: project_logs
-
-monitoring_promtail_extra_scrape_configs: []
-monitoring_promtail_extra_labels: {}
-
-monitoring_default_log_paths:
-  - /var/log/syslog
-  - /var/log/auth.log
-
-monitoring_project_log_paths: "{{ project_logs | default([]) }}"
-
-monitoring_promtail_labels:
-  host: "{{ inventory_hostname }}"
-  environment: "{{ project_env | default('unknown') }}"
-  project: "{{ project_key | default(project_name | default('none')) }}"
-  role: "{{ project_labels.role | default('app') if project_labels is defined else 'app' }}"
+promtail_required_packages:
+  - unzip

@@ -1,0 +1,86 @@
+---
+- name: Install packages required for promtail
+  ansible.builtin.package:
+    name: "{{ promtail_required_packages }}"
+    state: present
+
+- name: Ensure promtail config directory exists
+  ansible.builtin.file:
+    path: "{{ promtail_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Ensure promtail state directory exists
+  ansible.builtin.file:
+    path: "{{ promtail_positions_path | dirname }}"
+    state: directory
+    owner: "{{ monitoring_agent_system_user }}"
+    group: "{{ monitoring_agent_system_group }}"
+    mode: "0755"
+
+- name: Ensure promtail temporary extract directory is absent
+  ansible.builtin.file:
+    path: "{{ promtail_extract_dir }}"
+    state: absent
+
+- name: Ensure promtail temporary extract directory exists
+  ansible.builtin.file:
+    path: "{{ promtail_extract_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Download promtail archive
+  ansible.builtin.get_url:
+    url: "{{ promtail_download_url }}"
+    dest: "{{ promtail_zip_path }}"
+    mode: "0644"
+    force: false
+
+- name: Extract promtail archive
+  ansible.builtin.unarchive:
+    src: "{{ promtail_zip_path }}"
+    dest: "{{ promtail_extract_dir }}"
+    remote_src: true
+    creates: "{{ promtail_binary_src }}"
+
+- name: Install promtail binary
+  ansible.builtin.copy:
+    src: "{{ promtail_binary_src }}"
+    dest: "{{ promtail_binary_path }}"
+    owner: root
+    group: root
+    mode: "0755"
+    remote_src: true
+  notify: Restart promtail
+
+- name: Deploy promtail configuration
+  ansible.builtin.template:
+    src: promtail-config.yml.j2
+    dest: "{{ promtail_config_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart promtail
+
+- name: Deploy promtail systemd unit
+  ansible.builtin.template:
+    src: promtail.service.j2
+    dest: /etc/systemd/system/promtail.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart promtail
+
+- name: Flush handlers for promtail
+  ansible.builtin.meta: flush_handlers
+
+- name: Ensure promtail service is enabled and started
+  ansible.builtin.systemd:
+    name: promtail
+    enabled: true
+    state: started
+    daemon_reload: true

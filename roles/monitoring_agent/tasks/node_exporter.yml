@@ -1,0 +1,57 @@
+---
+- name: Ensure node_exporter textfile collector directory exists
+  ansible.builtin.file:
+    path: "{{ node_exporter_textfile_dir }}"
+    state: directory
+    owner: "{{ monitoring_agent_system_user }}"
+    group: "{{ monitoring_agent_system_group }}"
+    mode: "0755"
+  when: node_exporter_create_textfile_dir | bool
+
+- name: Download node_exporter archive
+  ansible.builtin.get_url:
+    url: "{{ node_exporter_download_url }}"
+    dest: "{{ node_exporter_archive_path }}"
+    mode: "0644"
+    force: false
+
+- name: Remove previous extracted node_exporter directory
+  ansible.builtin.file:
+    path: "{{ node_exporter_extract_path }}"
+    state: absent
+
+- name: Extract node_exporter archive
+  ansible.builtin.unarchive:
+    src: "{{ node_exporter_archive_path }}"
+    dest: "{{ node_exporter_tmp_dir }}"
+    remote_src: true
+    creates: "{{ node_exporter_binary_src }}"
+
+- name: Install node_exporter binary
+  ansible.builtin.copy:
+    src: "{{ node_exporter_binary_src }}"
+    dest: "{{ node_exporter_binary_path }}"
+    owner: root
+    group: root
+    mode: "0755"
+    remote_src: true
+  notify: Restart node_exporter
+
+- name: Deploy node_exporter systemd unit
+  ansible.builtin.template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart node_exporter
+
+- name: Flush handlers for node_exporter
+  ansible.builtin.meta: flush_handlers
+
+- name: Ensure node_exporter service is enabled and started
+  ansible.builtin.systemd:
+    name: node_exporter
+    enabled: true
+    state: started
+    daemon_reload: true

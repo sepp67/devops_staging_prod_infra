@@ -1,0 +1,30 @@
+[Unit]
+Description=Prometheus Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User={{ monitoring_agent_system_user }}
+Group={{ monitoring_agent_system_group }}
+ExecStart={{ node_exporter_binary_path }} \
+  --web.listen-address={{ node_exporter_web_listen_address }}{% if node_exporter_create_textfile_dir %} \
+  --collector.textfile.directory={{ node_exporter_textfile_dir }}{% endif %}{% for arg in node_exporter_extra_args %} \
+  {{ arg }}{% endfor %}
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

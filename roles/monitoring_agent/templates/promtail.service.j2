@@ -1,0 +1,21 @@
+[Unit]
+Description=Grafana Promtail
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User={{ monitoring_agent_system_user }}
+Group={{ monitoring_agent_system_group }}
+ExecStart={{ promtail_binary_path }} \
+  -config.file={{ promtail_config_path }}{% for arg in promtail_extra_args %} \
+  {{ arg }}{% endfor %}
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
