@@ -10,7 +10,7 @@ project_domain: webcam.staging.local
 project_expose_via_proxy: true
 project_tls_mode: internal
 
-project_image: ghcr.io/sepp67/ansible-role-webcam-stream:0.1.0
+project_image: ghcr.io/sepp67/ansible-role-webcam-stream:latest
 project_container_name: webcam-stream
 project_container_port: 80
 project_host_bind_ip: 0.0.0.0
