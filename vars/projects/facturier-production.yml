@@ -1,0 +1,34 @@
+---
+project_enabled: true
+
+project_name: facturier
+project_key: facturier
+project_env: production
+project_vm: vm-facturier-prod
+
+project_type: web
+project_domain: facturier.lavallee.tech
+project_expose_via_proxy: true
+project_tls_mode: letsencrypt
+
+project_image: ghcr.io/sepp67/ansible-role-facturier_demo:0.4.1
+project_container_name: facturier
+project_container_port: 80
+project_host_bind_ip: 0.0.0.0
+project_host_bind_port: 18000
+project_restart_policy: unless-stopped
+project_healthcheck_path: /
+
+project_env_vars: {}
+project_volumes: []
+
+project_healthcheck_enabled: false
+
+project_monitoring_enabled: true
+project_node_exporter_enabled: true
+project_promtail_enabled: true
+
+project_labels:
+  environment: production
+  project: facturier
+  role: app
