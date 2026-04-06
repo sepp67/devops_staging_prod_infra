@@ -30,7 +30,7 @@ project_env_vars:
   SNAPSHOT_HEIGHT: "1080"
   SNAPSHOT_QUALITY: "2"
   SNAPSHOT_WINDOW_MINUTES: "10"
-  HLS_TIME: "2"
+  HLS_TIME: "4"
   HLS_LIST_SIZE: "6"
 
 project_volumes:
