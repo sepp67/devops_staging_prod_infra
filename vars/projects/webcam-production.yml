@@ -1,0 +1,48 @@
+---
+project_enabled: true
+
+project_name: webcam
+project_key: webcam
+project_env: production
+project_vm: vm-webcam-prod
+project_type: web
+
+project_domain: webcam.lavallee.tech
+project_expose_via_proxy: true
+project_tls_mode: letsencrypt
+
+project_image: ghcr.io/sepp67/ansible-role-webcam-stream:latest
+project_container_name: webcam
+project_container_port: 80
+project_host_bind_ip: 0.0.0.0
+project_host_bind_port: 18080
+project_restart_policy: unless-stopped
+
+project_env_vars:
+  RTSP_URL: "{{ vault_webcam_rtsp_url_prod }}"
+  WEBCAM_LATITUDE: "48.4636"
+  WEBCAM_LONGITUDE: "7.4811"
+  WEBCAM_TIMEZONE: "Europe/Paris"
+  SNAPSHOT_RETENTION_DAYS: "31"
+  SNAPSHOT_WIDTH: "1920"
+  SNAPSHOT_HEIGHT: "1080"
+  SNAPSHOT_QUALITY: "2"
+  SNAPSHOT_WINDOW_MINUTES: "10"
+  HLS_TIME: "2"
+  HLS_LIST_SIZE: "6"
+
+project_volumes:
+  - /opt/apps/webcam/stream:/var/www/html/stream
+  - /opt/apps/webcam/gallery:/var/www/html/gallery
+
+project_healthcheck_enabled: false
+project_healthcheck_path: /
+
+project_monitoring_enabled: true
+project_node_exporter_enabled: true
+project_promtail_enabled: true
+
+project_labels:
+  environment: production
+  project: webcam
+  role: web
