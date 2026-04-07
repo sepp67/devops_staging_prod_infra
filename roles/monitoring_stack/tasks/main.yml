@@ -202,7 +202,7 @@
 
       compactor:
         working_directory: /loki/compactor
-        retention_enabled: true
+        retention_enabled: false
   when: monitoring_stack_loki_enabled | bool
   notify: Restart monitoring stack
 
@@ -289,3 +289,11 @@
         alertmanager_url: http://localhost:9093
   when: monitoring_stack_loki_enabled | bool
   notify: Restart monitoring stack    
+
+- name: Ensure Prometheus data directory permissions are correct
+  ansible.builtin.file:
+    path: "{{ monitoring_stack_prometheus_data_dir }}"
+    state: directory
+    owner: nobody
+    group: nogroup
+    mode: "0755"

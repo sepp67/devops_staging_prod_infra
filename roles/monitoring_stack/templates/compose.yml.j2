@@ -37,10 +37,10 @@ services:
     container_name: monitoring-pve-exporter
     restart: unless-stopped
     command:
-      - /bin/sh
-      - -ec
-      - |
-        /usr/bin/pve_exporter /etc/pve_exporter/pve.yml
+      - --config.file
+      - /etc/pve_exporter/pve.yml
+      - --web.listen-address
+      - :9221
     ports:
       - "{{ monitoring_stack_pve_exporter_port }}:9221"
     volumes:
@@ -77,3 +77,4 @@ services:
       - "{{ monitoring_stack_loki_data_dir }}:/loki"
     environment:
       TZ: "{{ monitoring_stack_timezone }}"  
+      
