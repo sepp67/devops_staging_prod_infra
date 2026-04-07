@@ -21,7 +21,8 @@ project_healthcheck_path: /
 project_healthcheck_enabled: false
 
 project_env_vars:
-  RTSP_URL: "rtsp://{{ vault_webcam_rtsp_user }}:{{ vault_webcam_rtsp_password }}@{{ webcam_camera_ip }}:554/Preview_01_main"  WEBCAM_LATITUDE: "{{ webcam_latitude }}"
+  RTSP_URL: "rtsp://{{ vault_webcam_rtsp_user }}:{{ vault_webcam_rtsp_password }}@{{ webcam_camera_ip }}:554/Preview_01_main"
+  WEBCAM_LATITUDE: "{{ webcam_latitude }}"
   WEBCAM_LONGITUDE: "{{ webcam_longitude }}"
   WEBCAM_TIMEZONE: "{{ webcam_timezone }}"
   SNAPSHOT_RETENTION_DAYS: "31"
