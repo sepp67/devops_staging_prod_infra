@@ -3,3 +3,20 @@ webcam_camera_ip: "192.168.8.101"
 webcam_latitude: "48.4636"
 webcam_longitude: "7.4811"
 webcam_timezone: "Europe/Paris"
+
+monitoring_stack_root_dir: /opt/monitoring
+monitoring_stack_timezone: Europe/Paris
+
+monitoring_stack_grafana_admin_user: admin
+monitoring_stack_grafana_admin_password: "{{ vault_grafana_admin_password }}"
+
+monitoring_stack_pve_target: "https://192.168.1.67:8006"
+monitoring_stack_pve_user: "{{ vault_proxmox_monitoring_user }}"
+monitoring_stack_pve_token_name: "{{ vault_proxmox_monitoring_token_name }}"
+monitoring_stack_pve_token_value: "{{ vault_proxmox_monitoring_token_value }}"
+monitoring_stack_pve_verify_ssl: false
+
+monitoring_stack_prometheus_retention_time: 30d
+monitoring_stack_prometheus_retention_size: 10GB
+monitoring_stack_http_slow_threshold_seconds: 1
+monitoring_stack_low_disk_threshold_ratio: 0.10

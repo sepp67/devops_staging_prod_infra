@@ -26,21 +26,15 @@
   changed_when: false
 
 - name: Validate Prometheus configuration syntax
-  community.docker.docker_container:
-    name: monitoring-promtool-check
-    image: "{{ monitoring_stack_prometheus_image }}"
-    command:
-      - promtool
-      - check
-      - config
-      - /etc/prometheus/prometheus.yml
-    volumes:
-      - "{{ monitoring_stack_prometheus_config_path }}:/etc/prometheus/prometheus.yml:ro"
-      - "{{ monitoring_stack_prometheus_rules_path }}:/etc/prometheus/alert_rules.yml:ro"
-      - "{{ monitoring_stack_prometheus_file_sd_root }}:/etc/prometheus/file_sd:ro"
-    auto_remove: true
-    detach: false
-    state: started
+  ansible.builtin.command:
+    cmd: >-
+      docker run --rm
+      --entrypoint promtool
+      -v {{ monitoring_stack_prometheus_config_path }}:/etc/prometheus/prometheus.yml:ro
+      -v {{ monitoring_stack_prometheus_rules_path }}:/etc/prometheus/alert_rules.yml:ro
+      -v {{ monitoring_stack_prometheus_file_sd_root }}:/etc/prometheus/file_sd:ro
+      {{ monitoring_stack_prometheus_image }}
+      check config /etc/prometheus/prometheus.yml
   changed_when: false
 
 - name: Check Loki configuration file exists
