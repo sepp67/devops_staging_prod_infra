@@ -43,8 +43,8 @@
               labels:
                 severity: warning
               annotations:
-                summary: "Node exporter down on {{`{{ $labels.instance }}`}}"
-                description: "Prometheus cannot scrape node exporter for {{`{{ $labels.instance }}`}}."
+                summary: "Node exporter down on {% raw %}{{ $labels.instance }}{% endraw %}"
+                description: "Prometheus cannot scrape node exporter for {% raw %}{{ $labels.instance }}{% endraw %}."
 
             - alert: LowDiskSpace
               expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}) < {{ monitoring_stack_low_disk_threshold_ratio }}
@@ -52,8 +52,8 @@
               labels:
                 severity: warning
               annotations:
-                summary: "Low disk space on {{`{{ $labels.instance }}`}}"
-                description: "Available disk space is below threshold on {{`{{ $labels.instance }}`}}."
+                summary: "Low disk space on {% raw %}{{ $labels.instance }}{% endraw %}"
+                description: "Available disk space is below threshold on {% raw %}{{ $labels.instance }}{% endraw %}."
 
             - alert: HttpProbeFailed
               expr: probe_success{job="blackbox-http"} == 0
@@ -61,8 +61,8 @@
               labels:
                 severity: critical
               annotations:
-                summary: "HTTP probe failed for {{`{{ $labels.instance }}`}}"
-                description: "Blackbox probe is failing for {{`{{ $labels.instance }}`}}."
+                summary: "HTTP probe failed for {% raw %}{{ $labels.instance }}{% endraw %}"
+                description: "Blackbox probe is failing for {% raw %}{{ $labels.instance }}{% endraw %}."
 
             - alert: HttpProbeSlow
               expr: probe_duration_seconds{job="blackbox-http"} > {{ monitoring_stack_http_slow_threshold_seconds }}
@@ -70,8 +70,8 @@
               labels:
                 severity: warning
               annotations:
-                summary: "HTTP probe slow for {{`{{ $labels.instance }}`}}"
-                description: "HTTP response time is above threshold for {{`{{ $labels.instance }}`}}."
+                summary: "HTTP probe slow for {% raw %}{{ $labels.instance }}{% endraw %}"
+                description: "HTTP response time is above threshold for {% raw %}{{ $labels.instance }}{% endraw %}."
   notify: Restart monitoring stack
 
 - name: Render Blackbox exporter configuration
