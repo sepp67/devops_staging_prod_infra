@@ -9,3 +9,5 @@ venv/
 *.xml
 *.log
 .DS_Store
+.vault_pass
+.vault
