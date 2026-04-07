@@ -15,3 +15,4 @@ monitoring_stack_prometheus_retention_time: 30d
 monitoring_stack_prometheus_retention_size: 10GB
 monitoring_stack_http_slow_threshold_seconds: 1
 monitoring_stack_low_disk_threshold_ratio: 0.10
+
