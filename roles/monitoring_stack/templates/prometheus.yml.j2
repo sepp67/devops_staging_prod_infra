@@ -1,0 +1,66 @@
+global:
+  scrape_interval: {{ monitoring_stack_prometheus_scrape_interval }}
+  evaluation_interval: {{ monitoring_stack_prometheus_evaluation_interval }}
+
+rule_files:
+  - /etc/prometheus/alert_rules.yml
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090
+        labels:
+          service: prometheus
+          role: monitoring
+
+  - job_name: blackbox-exporter
+    static_configs:
+      - targets:
+          - blackbox-exporter:9115
+        labels:
+          service: blackbox-exporter
+          role: monitoring
+
+  - job_name: pve
+    metrics_path: /pve
+    params:
+      module: [default]
+      cluster: ['1']
+      node: ['1']
+    static_configs:
+      - targets:
+          - "{{ monitoring_stack_pve_target }}"
+        labels:
+          service: proxmox
+          role: hypervisor
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - target_label: __address__
+        replacement: pve-exporter:9221
+      - source_labels: [__param_target]
+        target_label: instance
+
+  - job_name: node
+    file_sd_configs:
+      - files:
+          - /etc/prometheus/file_sd/node_targets/*.yml
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  - job_name: blackbox-http
+    metrics_path: /probe
+    params:
+      module: [{{ monitoring_stack_blackbox_module }}]
+    file_sd_configs:
+      - files:
+          - /etc/prometheus/file_sd/blackbox_targets/*.yml
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+      - source_labels: [__param_target]
+        target_label: instance

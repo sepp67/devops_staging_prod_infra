@@ -1,0 +1,26 @@
+---
+- name: Validate Proxmox monitoring credentials are provided
+  ansible.builtin.assert:
+    that:
+      - monitoring_stack_pve_target | length > 0
+      - monitoring_stack_pve_user | length > 0
+      - monitoring_stack_pve_token_name | length > 0
+      - monitoring_stack_pve_token_value | length > 0
+    fail_msg: >-
+      Proxmox monitoring credentials are incomplete.
+      Please define monitoring_stack_pve_target, monitoring_stack_pve_user,
+      monitoring_stack_pve_token_name and monitoring_stack_pve_token_value.
+
+- name: Render PVE exporter configuration
+  ansible.builtin.copy:
+    dest: "{{ monitoring_stack_pve_config_path }}"
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      default:
+        user: "{{ monitoring_stack_pve_user }}"
+        token_name: "{{ monitoring_stack_pve_token_name }}"
+        token_value: "{{ monitoring_stack_pve_token_value }}"
+        verify_ssl: {{ monitoring_stack_pve_verify_ssl | bool | lower }}
+  notify: Restart monitoring stack

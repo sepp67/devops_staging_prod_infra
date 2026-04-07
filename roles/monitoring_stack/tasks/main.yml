@@ -1,0 +1,222 @@
+---
+- name: Ensure monitoring base directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - "{{ monitoring_stack_root_dir }}"
+    - "{{ monitoring_stack_prometheus_config_dir }}"
+    - "{{ monitoring_stack_prometheus_data_dir }}"
+    - "{{ monitoring_stack_blackbox_config_dir }}"
+    - "{{ monitoring_stack_grafana_dir }}"
+    - "{{ monitoring_stack_grafana_data_dir }}"
+    - "{{ monitoring_stack_pve_config_dir }}"
+    - "{{ monitoring_stack_prometheus_file_sd_root }}"
+    - "{{ monitoring_stack_prometheus_node_targets_dir }}"
+    - "{{ monitoring_stack_prometheus_blackbox_targets_dir }}"
+
+- name: Render Prometheus configuration
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: "{{ monitoring_stack_prometheus_config_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart monitoring stack
+
+- name: Render minimal alert rules
+  ansible.builtin.copy:
+    dest: "{{ monitoring_stack_prometheus_rules_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      groups:
+        - name: infrastructure
+          rules:
+            - alert: NodeExporterDown
+              expr: up{job="node"} == 0
+              for: 2m
+              labels:
+                severity: warning
+              annotations:
+                summary: "Node exporter down on {{`{{ $labels.instance }}`}}"
+                description: "Prometheus cannot scrape node exporter for {{`{{ $labels.instance }}`}}."
+
+            - alert: LowDiskSpace
+              expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}) < {{ monitoring_stack_low_disk_threshold_ratio }}
+              for: 5m
+              labels:
+                severity: warning
+              annotations:
+                summary: "Low disk space on {{`{{ $labels.instance }}`}}"
+                description: "Available disk space is below threshold on {{`{{ $labels.instance }}`}}."
+
+            - alert: HttpProbeFailed
+              expr: probe_success{job="blackbox-http"} == 0
+              for: 2m
+              labels:
+                severity: critical
+              annotations:
+                summary: "HTTP probe failed for {{`{{ $labels.instance }}`}}"
+                description: "Blackbox probe is failing for {{`{{ $labels.instance }}`}}."
+
+            - alert: HttpProbeSlow
+              expr: probe_duration_seconds{job="blackbox-http"} > {{ monitoring_stack_http_slow_threshold_seconds }}
+              for: 5m
+              labels:
+                severity: warning
+              annotations:
+                summary: "HTTP probe slow for {{`{{ $labels.instance }}`}}"
+                description: "HTTP response time is above threshold for {{`{{ $labels.instance }}`}}."
+  notify: Restart monitoring stack
+
+- name: Render Blackbox exporter configuration
+  ansible.builtin.copy:
+    dest: "{{ monitoring_stack_blackbox_config_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      modules:
+        http_2xx:
+          prober: http
+          timeout: 5s
+          http:
+            method: GET
+            preferred_ip_protocol: ip4
+            valid_status_codes:
+      {% for code in monitoring_stack_blackbox_valid_status_codes %}
+              - {{ code }}
+      {% endfor %}
+  notify: Restart monitoring stack
+
+- name: Render PVE exporter configuration
+  ansible.builtin.include_tasks: pve_exporter.yml
+
+- name: Render Grafana datasources provisioning
+  ansible.builtin.template:
+    src: grafana-datasources.yml.j2
+    dest: "{{ monitoring_stack_grafana_datasources_dir }}/datasources.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart monitoring stack
+
+- name: Render Grafana dashboards provisioning
+  ansible.builtin.template:
+    src: grafana-dashboards.yml.j2
+    dest: "{{ monitoring_stack_grafana_dashboards_provisioning_dir }}/dashboards.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart monitoring stack
+
+- name: Copy Grafana dashboards
+  ansible.builtin.copy:
+    src: "dashboards/{{ item }}"
+    dest: "{{ monitoring_stack_grafana_dashboards_dir }}/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - infra-overview.json
+    - http-endpoints.json
+    - loki-caddy-logs.json
+  notify: Restart monitoring stack  
+
+- name: Render monitoring docker compose file
+  ansible.builtin.template:
+    src: compose.yml.j2
+    dest: "{{ monitoring_stack_compose_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart monitoring stack
+
+- name: Validate monitoring stack configuration
+  ansible.builtin.include_tasks: validate.yml
+
+- name: Ensure monitoring stack is started
+  community.docker.docker_compose_v2:
+    project_src: "{{ monitoring_stack_root_dir }}"
+    files:
+      - "{{ monitoring_stack_compose_path }}"
+    state: present
+    pull: always
+    recreate: auto
+
+- name: Ensure monitoring base directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - "{{ monitoring_stack_root_dir }}"
+    - "{{ monitoring_stack_prometheus_config_dir }}"
+    - "{{ monitoring_stack_prometheus_data_dir }}"
+    - "{{ monitoring_stack_blackbox_config_dir }}"
+    - "{{ monitoring_stack_grafana_dir }}"
+    - "{{ monitoring_stack_grafana_data_dir }}"
+    - "{{ monitoring_stack_pve_config_dir }}"
+    - "{{ monitoring_stack_loki_config_dir }}"
+    - "{{ monitoring_stack_loki_data_dir }}"
+    - "{{ monitoring_stack_prometheus_file_sd_root }}"
+    - "{{ monitoring_stack_prometheus_node_targets_dir }}"
+    - "{{ monitoring_stack_prometheus_blackbox_targets_dir }}"
+    - "{{ monitoring_stack_grafana_provisioning_dir }}"
+    - "{{ monitoring_stack_grafana_datasources_dir }}"
+    - "{{ monitoring_stack_grafana_dashboards_provisioning_dir }}"
+    - "{{ monitoring_stack_grafana_dashboards_dir }}"
+
+- name: Render Loki configuration
+  ansible.builtin.copy:
+    dest: "{{ monitoring_stack_loki_config_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      auth_enabled: false
+
+      server:
+        http_listen_port: 3100
+
+      common:
+        path_prefix: /loki
+        storage:
+          filesystem:
+            chunks_directory: /loki/chunks
+            rules_directory: /loki/rules
+        replication_factor: 1
+        ring:
+          instance_addr: 127.0.0.1
+          kvstore:
+            store: inmemory
+
+      schema_config:
+        configs:
+          - from: 2024-01-01
+            store: tsdb
+            object_store: filesystem
+            schema: v13
+            index:
+              prefix: index_
+              period: 24h
+
+      limits_config:
+        allow_structured_metadata: true
+        volume_enabled: true
+
+      compactor:
+        working_directory: /loki/compactor
+        retention_enabled: true
+
+      ruler:
+        alertmanager_url: http://localhost:9093
+  when: monitoring_stack_loki_enabled | bool
+  notify: Restart monitoring stack    

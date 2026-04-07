@@ -1,0 +1,84 @@
+---
+- name: Check monitoring stack directories exist
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - "{{ monitoring_stack_root_dir }}"
+    - "{{ monitoring_stack_prometheus_config_dir }}"
+    - "{{ monitoring_stack_blackbox_config_dir }}"
+    - "{{ monitoring_stack_grafana_dir }}"
+    - "{{ monitoring_stack_pve_config_dir }}"
+    - "{{ monitoring_stack_prometheus_node_targets_dir }}"
+    - "{{ monitoring_stack_prometheus_blackbox_targets_dir }}"
+  register: monitoring_stack_dir_checks
+
+- name: Assert monitoring stack directories are present
+  ansible.builtin.assert:
+    that:
+      - item.stat.exists
+      - item.stat.isdir
+    fail_msg: "Required directory is missing: {{ item.stat.path | default('unknown') }}"
+  loop: "{{ monitoring_stack_dir_checks.results }}"
+
+- name: Validate docker compose rendering
+  ansible.builtin.command:
+    cmd: docker compose -f {{ monitoring_stack_compose_path }} config
+  changed_when: false
+
+- name: Validate Prometheus configuration syntax
+  community.docker.docker_container:
+    name: monitoring-promtool-check
+    image: "{{ monitoring_stack_prometheus_image }}"
+    command:
+      - promtool
+      - check
+      - config
+      - /etc/prometheus/prometheus.yml
+    volumes:
+      - "{{ monitoring_stack_prometheus_config_path }}:/etc/prometheus/prometheus.yml:ro"
+      - "{{ monitoring_stack_prometheus_rules_path }}:/etc/prometheus/alert_rules.yml:ro"
+      - "{{ monitoring_stack_prometheus_file_sd_root }}:/etc/prometheus/file_sd:ro"
+    auto_remove: true
+    detach: false
+    state: started
+  changed_when: false
+
+- name: Check Loki configuration file exists
+  ansible.builtin.stat:
+    path: "{{ monitoring_stack_loki_config_path }}"
+  register: monitoring_stack_loki_config_stat
+  when: monitoring_stack_loki_enabled | bool
+
+- name: Assert Loki configuration file exists
+  ansible.builtin.assert:
+    that:
+      - monitoring_stack_loki_config_stat.stat.exists
+    fail_msg: "Loki configuration file is missing: {{ monitoring_stack_loki_config_path }}"
+  when: monitoring_stack_loki_enabled | bool
+
+- name: Check Grafana datasource provisioning file exists
+  ansible.builtin.stat:
+    path: "{{ monitoring_stack_grafana_datasources_dir }}/datasources.yml"
+  register: monitoring_stack_grafana_datasources_stat
+
+- name: Assert Grafana datasource provisioning file exists
+  ansible.builtin.assert:
+    that:
+      - monitoring_stack_grafana_datasources_stat.stat.exists
+    fail_msg: >-
+      Grafana datasource provisioning file is missing:
+      {{ monitoring_stack_grafana_datasources_dir }}/datasources.yml
+
+- name: Check Grafana dashboard provisioning file exists
+  ansible.builtin.stat:
+    path: "{{ monitoring_stack_grafana_dashboards_provisioning_dir }}/dashboards.yml"
+  register: monitoring_stack_grafana_dashboards_stat
+
+- name: Assert Grafana dashboard provisioning file exists
+  ansible.builtin.assert:
+    that:
+      - monitoring_stack_grafana_dashboards_stat.stat.exists
+    fail_msg: >-
+      Grafana dashboard provisioning file is missing:
+      {{ monitoring_stack_grafana_dashboards_provisioning_dir }}/dashboards.yml
+
