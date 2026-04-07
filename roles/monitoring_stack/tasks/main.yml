@@ -22,8 +22,8 @@
   ansible.builtin.file:
     path: "{{ monitoring_stack_grafana_data_dir }}"
     state: directory
-    owner: "472"
-    group: "472"
+    owner: "{{ monitoring_stack_grafana_uid }}"
+    group: "{{ monitoring_stack_grafana_gid }}"
     mode: "0755"
 
 - name: Ensure Grafana provisioning directories are readable

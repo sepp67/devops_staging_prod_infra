@@ -75,3 +75,7 @@ monitoring_stack_grafana_dashboards_dir: "{{ monitoring_stack_grafana_dir }}/das
 monitoring_stack_grafana_prometheus_datasource_name: Prometheus
 monitoring_stack_grafana_loki_datasource_name: Loki
 monitoring_stack_grafana_default_datasource: Prometheus
+
+monitoring_stack_grafana_uid: "472"
+monitoring_stack_grafana_gid: "472"
+
