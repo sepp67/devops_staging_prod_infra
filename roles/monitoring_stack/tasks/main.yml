@@ -18,6 +18,27 @@
     - "{{ monitoring_stack_prometheus_node_targets_dir }}"
     - "{{ monitoring_stack_prometheus_blackbox_targets_dir }}"
 
+- name: Ensure Grafana data directory permissions are correct
+  ansible.builtin.file:
+    path: "{{ monitoring_stack_grafana_data_dir }}"
+    state: directory
+    owner: "472"
+    group: "472"
+    mode: "0755"
+
+- name: Ensure Grafana provisioning directories are readable
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - "{{ monitoring_stack_grafana_provisioning_dir }}"
+    - "{{ monitoring_stack_grafana_datasources_dir }}"
+    - "{{ monitoring_stack_grafana_dashboards_provisioning_dir }}"
+    - "{{ monitoring_stack_grafana_dashboards_dir }}"    
+
 - name: Render Prometheus configuration
   ansible.builtin.template:
     src: prometheus.yml.j2
