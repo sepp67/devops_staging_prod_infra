@@ -11,7 +11,7 @@ project_domain: facturier.lavallee.tech
 project_expose_via_proxy: true
 project_tls_mode: letsencrypt
 
-project_image: ghcr.io/sepp67/ansible-role-facturier_demo:0.4.1
+project_image: ghcr.io/sepp67/ansible-role-facturier_demo:latest
 project_container_name: facturier
 project_container_port: 80
 project_host_bind_ip: 0.0.0.0
