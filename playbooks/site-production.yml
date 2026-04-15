@@ -91,14 +91,7 @@
                 target_label: site
                 replacement: '$1'
 
-#- name: Deploy central monitoring stack
-#  hosts: monitoring
-#  become: true
-#  gather_facts: true
-#  roles:
-#    - role: base_linux
-#    - role: docker_host
-#    - role: monitoring_stack
+
 
 - name: Register production monitoring targets
   hosts: monitoring
