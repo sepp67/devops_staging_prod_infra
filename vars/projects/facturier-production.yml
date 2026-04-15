@@ -13,7 +13,7 @@ project_tls_mode: letsencrypt
 
 project_image: ghcr.io/sepp67/ansible-role-facturier_demo:latest
 project_container_name: facturier
-project_container_port: 80
+project_container_port: 8000
 project_host_bind_ip: 0.0.0.0
 project_host_bind_port: 18000
 project_restart_policy: unless-stopped
