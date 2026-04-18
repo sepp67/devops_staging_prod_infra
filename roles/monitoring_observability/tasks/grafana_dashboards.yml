@@ -1,0 +1,18 @@
+---
+- name: Deploy Grafana dashboards provider
+  ansible.builtin.template:
+    src: grafana-dashboards-provider.yml.j2
+    dest: "{{ monitoring_observability_grafana_provider_file }}"
+    mode: "0644"
+
+- name: Deploy VM fleet overview dashboard
+  ansible.builtin.template:
+    src: dashboard-vm-fleet-overview.json.j2
+    dest: "{{ monitoring_observability_grafana_dashboards_dir }}/vm-fleet-overview.json"
+    mode: "0644"
+
+- name: Deploy blackbox overview dashboard
+  ansible.builtin.template:
+    src: dashboard-blackbox-overview.json.j2
+    dest: "{{ monitoring_observability_grafana_dashboards_dir }}/blackbox-overview.json"
+    mode: "0644"

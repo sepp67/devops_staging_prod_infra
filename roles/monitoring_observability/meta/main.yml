@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  role_name: monitoring_observability
+  author: sepp67
+  description: >
+    Installe la stack centrale de monitoring sur vm-monitoring :
+    Prometheus, Grafana, Loki et Blackbox Exporter.
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - bullseye
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+
+dependencies: []

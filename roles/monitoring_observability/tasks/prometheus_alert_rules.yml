@@ -1,0 +1,7 @@
+---
+- name: Deploy Prometheus alert rules
+  ansible.builtin.template:
+    src: alert-rules.yml.j2
+    dest: "{{ monitoring_observability_prometheus_alert_rules_file }}"
+    mode: "0644"
+  notify: Reload Prometheus

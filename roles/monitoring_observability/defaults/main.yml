@@ -1,0 +1,65 @@
+---
+monitoring_observability_install_stack: true
+
+monitoring_observability_root_dir: /opt/monitoring
+monitoring_observability_compose_path: "{{ monitoring_observability_root_dir }}/compose.yml"
+monitoring_observability_timezone: Europe/Paris
+
+monitoring_observability_prometheus_image: prom/prometheus:v2.54.1
+monitoring_observability_grafana_image: grafana/grafana:11.2.0
+monitoring_observability_loki_image: grafana/loki:3.1.1
+monitoring_observability_blackbox_image: prom/blackbox-exporter:v0.25.0
+
+monitoring_observability_prometheus_port: 9090
+monitoring_observability_grafana_port: 3000
+monitoring_observability_loki_port: 3100
+monitoring_observability_blackbox_port: 9115
+
+monitoring_observability_prometheus_scrape_interval: 30s
+monitoring_observability_prometheus_evaluation_interval: 30s
+monitoring_observability_prometheus_retention_time: 30d
+monitoring_observability_prometheus_retention_size: 10GB
+
+monitoring_observability_prometheus_dir: "{{ monitoring_observability_root_dir }}/prometheus"
+monitoring_observability_prometheus_config_path: "{{ monitoring_observability_prometheus_dir }}/prometheus.yml"
+monitoring_observability_prometheus_rules_dir: "{{ monitoring_observability_prometheus_dir }}/rules"
+monitoring_observability_prometheus_data_dir: "{{ monitoring_observability_prometheus_dir }}/data"
+
+monitoring_observability_loki_dir: "{{ monitoring_observability_root_dir }}/loki"
+monitoring_observability_loki_config_path: "{{ monitoring_observability_loki_dir }}/loki.yml"
+monitoring_observability_loki_data_dir: "{{ monitoring_observability_loki_dir }}/data"
+
+monitoring_observability_blackbox_dir: "{{ monitoring_observability_root_dir }}/blackbox"
+monitoring_observability_blackbox_config_path: "{{ monitoring_observability_blackbox_dir }}/blackbox.yml"
+monitoring_observability_blackbox_module: http_2xx
+monitoring_observability_blackbox_valid_status_codes:
+  - 200
+  - 301
+  - 302
+
+monitoring_observability_grafana_dir: "{{ monitoring_observability_root_dir }}/grafana"
+monitoring_observability_grafana_data_dir: "{{ monitoring_observability_grafana_dir }}/data"
+monitoring_observability_grafana_dashboards_dir: "{{ monitoring_observability_grafana_dir }}/dashboards"
+monitoring_observability_grafana_provisioning_dir: "{{ monitoring_observability_grafana_dir }}/provisioning"
+monitoring_observability_grafana_datasources_dir: "{{ monitoring_observability_grafana_provisioning_dir }}/datasources"
+monitoring_observability_grafana_dashboards_provisioning_dir: "{{ monitoring_observability_grafana_provisioning_dir }}/dashboards"
+
+monitoring_observability_grafana_admin_user: admin
+monitoring_observability_grafana_admin_password: changeme
+
+monitoring_observability_prometheus_file_sd_root: /etc/prometheus/file_sd
+monitoring_observability_prometheus_node_targets_dir: "{{ monitoring_observability_prometheus_file_sd_root }}/node_targets"
+monitoring_observability_prometheus_blackbox_targets_dir: "{{ monitoring_observability_prometheus_file_sd_root }}/blackbox_targets"
+
+monitoring_observability_pve_target: "https://127.0.0.1:8006"
+monitoring_observability_pve_user: ""
+monitoring_observability_pve_token_name: ""
+monitoring_observability_pve_token_value: ""
+monitoring_observability_pve_verify_ssl: false
+
+monitoring_observability_grafana_prometheus_datasource_name: Prometheus
+monitoring_observability_grafana_loki_datasource_name: Loki
+monitoring_observability_grafana_default_datasource: Prometheus
+monitoring_observability_grafana_dashboard_folder: Infrastructure
+
+monitoring_observability_prometheus_reload_url: "http://127.0.0.1:9090/-/reload"

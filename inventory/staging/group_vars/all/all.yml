@@ -4,4 +4,12 @@ webcam_latitude: "48.4636"
 webcam_longitude: "7.4811"
 webcam_timezone: "Europe/Paris"
 
+monitoring_observability_grafana_admin_user: "{{ vault_grafana_admin_user }}"
+monitoring_observability_grafana_admin_password: "{{ vault_grafana_admin_password }}"
+
+monitoring_observability_pve_target: "https://192.168.1.67:8006"
+monitoring_observability_pve_user: "{{ vault_proxmox_monitoring_user }}"
+monitoring_observability_pve_token_name: "{{ vault_proxmox_monitoring_token_name }}"
+monitoring_observability_pve_token_value: "{{ vault_proxmox_monitoring_token_value }}"
+monitoring_observability_pve_verify_ssl: false
 

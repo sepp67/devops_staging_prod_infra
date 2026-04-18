@@ -1,0 +1,49 @@
+---
+- name: Validate docker compose file
+  ansible.builtin.command:
+    cmd: docker compose -f {{ monitoring_observability_compose_path }} config
+  changed_when: false
+
+- name: Check Prometheus config file exists
+  ansible.builtin.stat:
+    path: "{{ monitoring_observability_prometheus_config_path }}"
+  register: monitoring_observability_prometheus_config_stat
+
+- name: Assert Prometheus config exists
+  ansible.builtin.assert:
+    that:
+      - monitoring_observability_prometheus_config_stat.stat.exists
+    fail_msg: "Prometheus configuration file missing: {{ monitoring_observability_prometheus_config_path }}"
+
+- name: Check Loki config file exists
+  ansible.builtin.stat:
+    path: "{{ monitoring_observability_loki_config_path }}"
+  register: monitoring_observability_loki_config_stat
+
+- name: Assert Loki config exists
+  ansible.builtin.assert:
+    that:
+      - monitoring_observability_loki_config_stat.stat.exists
+    fail_msg: "Loki configuration file missing: {{ monitoring_observability_loki_config_path }}"
+
+- name: Check Blackbox config file exists
+  ansible.builtin.stat:
+    path: "{{ monitoring_observability_blackbox_config_path }}"
+  register: monitoring_observability_blackbox_config_stat
+
+- name: Assert Blackbox config exists
+  ansible.builtin.assert:
+    that:
+      - monitoring_observability_blackbox_config_stat.stat.exists
+    fail_msg: "Blackbox configuration file missing: {{ monitoring_observability_blackbox_config_path }}"
+
+- name: Check Grafana datasource provisioning exists
+  ansible.builtin.stat:
+    path: "{{ monitoring_observability_grafana_datasources_dir }}/datasources.yml"
+  register: monitoring_observability_grafana_datasources_stat
+
+- name: Assert Grafana datasource provisioning exists
+  ansible.builtin.assert:
+    that:
+      - monitoring_observability_grafana_datasources_stat.stat.exists
+    fail_msg: "Grafana datasource provisioning missing: {{ monitoring_observability_grafana_datasources_dir }}/datasources.yml"

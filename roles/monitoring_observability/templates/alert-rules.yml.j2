@@ -1,0 +1,75 @@
+groups:
+  - name: monitoring-observability-node-alerts
+    rules:
+      - alert: InstanceDown
+        expr: up{job=~"{{ monitoring_observability_node_job_regex }}"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance down"
+          description: "L'instance {{ "{{ $labels.instance }}" }} ne répond plus."
+
+      - alert: HighCPUUsage
+        expr: |
+          100 - (
+            avg by(instance, environment) (
+              rate(node_cpu_seconds_total{mode="idle"}[5m])
+            ) * 100
+          ) > {{ monitoring_observability_cpu_warning_threshold }}
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU élevée"
+          description: "La VM {{ "{{ $labels.instance }}" }} dépasse le seuil CPU."
+
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            1 - (
+              node_memory_MemAvailable_bytes
+              /
+              node_memory_MemTotal_bytes
+            )
+          ) * 100 > {{ monitoring_observability_memory_warning_threshold }}
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Mémoire élevée"
+          description: "La VM {{ "{{ $labels.instance }}" }} dépasse le seuil mémoire."
+
+      - alert: DiskSpaceLow
+        expr: |
+          (
+            node_filesystem_avail_bytes{fstype!~"tmpfs|overlay",mountpoint="/"}
+            /
+            node_filesystem_size_bytes{fstype!~"tmpfs|overlay",mountpoint="/"}
+          ) < {{ monitoring_observability_disk_free_ratio_threshold }}
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disque presque plein"
+          description: "La VM {{ "{{ $labels.instance }}" }} a peu d'espace libre sur /."
+
+  - name: monitoring-observability-blackbox-alerts
+    rules:
+      - alert: BlackboxProbeFailed
+        expr: probe_success{job=~"{{ monitoring_observability_blackbox_job_regex }}"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Probe blackbox en échec"
+          description: "L'endpoint {{ "{{ $labels.instance }}" }} ne répond pas correctement."
+
+      - alert: BlackboxProbeSlow
+        expr: probe_duration_seconds{job=~"{{ monitoring_observability_blackbox_job_regex }}"} > {{ monitoring_observability_blackbox_latency_threshold_seconds }}
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Probe blackbox lente"
+          description: "L'endpoint {{ "{{ $labels.instance }}" }} répond lentement."

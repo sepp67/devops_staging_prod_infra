@@ -1,0 +1,63 @@
+services:
+  prometheus:
+    image: {{ monitoring_observability_prometheus_image }}
+    container_name: monitoring-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time={{ monitoring_observability_prometheus_retention_time }}
+      - --storage.tsdb.retention.size={{ monitoring_observability_prometheus_retention_size }}
+      - --web.enable-lifecycle
+    ports:
+      - "{{ monitoring_observability_prometheus_port }}:9090"
+    volumes:
+      - "{{ monitoring_observability_prometheus_config_path }}:/etc/prometheus/prometheus.yml:ro"
+      - "{{ monitoring_observability_prometheus_rules_dir }}:/etc/prometheus/rules:ro"
+      - "{{ monitoring_observability_prometheus_data_dir }}:/prometheus"
+      - "{{ monitoring_observability_prometheus_file_sd_root }}:/etc/prometheus/file_sd:ro"
+    environment:
+      TZ: "{{ monitoring_observability_timezone }}"
+
+  blackbox-exporter:
+    image: {{ monitoring_observability_blackbox_image }}
+    container_name: monitoring-blackbox
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/blackbox_exporter/config.yml
+    ports:
+      - "{{ monitoring_observability_blackbox_port }}:9115"
+    volumes:
+      - "{{ monitoring_observability_blackbox_config_path }}:/etc/blackbox_exporter/config.yml:ro"
+    environment:
+      TZ: "{{ monitoring_observability_timezone }}"
+
+  grafana:
+    image: {{ monitoring_observability_grafana_image }}
+    container_name: monitoring-grafana
+    restart: unless-stopped
+    ports:
+      - "{{ monitoring_observability_grafana_port }}:3000"
+    environment:
+      TZ: "{{ monitoring_observability_timezone }}"
+      GF_SECURITY_ADMIN_USER: "{{ monitoring_observability_grafana_admin_user }}"
+      GF_SECURITY_ADMIN_PASSWORD: "{{ monitoring_observability_grafana_admin_password }}"
+    volumes:
+      - "{{ monitoring_observability_grafana_data_dir }}:/var/lib/grafana"
+      - "{{ monitoring_observability_grafana_datasources_dir }}:/etc/grafana/provisioning/datasources:ro"
+      - "{{ monitoring_observability_grafana_dashboards_provisioning_dir }}:/etc/grafana/provisioning/dashboards:ro"
+      - "{{ monitoring_observability_grafana_dashboards_dir }}:/var/lib/grafana/dashboards:ro"
+
+  loki:
+    image: {{ monitoring_observability_loki_image }}
+    container_name: monitoring-loki
+    restart: unless-stopped
+    command:
+      - -config.file=/etc/loki/loki.yml
+    ports:
+      - "{{ monitoring_observability_loki_port }}:3100"
+    volumes:
+      - "{{ monitoring_observability_loki_config_path }}:/etc/loki/loki.yml:ro"
+      - "{{ monitoring_observability_loki_data_dir }}:/loki"
+    environment:
+      TZ: "{{ monitoring_observability_timezone }}"
