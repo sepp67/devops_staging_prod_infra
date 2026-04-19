@@ -10,6 +10,7 @@
     src: dashboard-vm-fleet-overview.json.j2
     dest: "{{ monitoring_observability_grafana_dashboards_dir }}/vm-fleet-overview.json"
     mode: "0644"
+  notify: Restart monitoring stack  
 
 - name: Deploy blackbox overview dashboard
   ansible.builtin.template:

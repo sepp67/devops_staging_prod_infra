@@ -3,6 +3,18 @@
   ansible.builtin.include_tasks: install_stack.yml
   when: monitoring_observability_install_stack | bool
 
+- name: Configure Grafana dashboards
+  ansible.builtin.include_tasks: grafana_dashboards.yml
+  when: monitoring_observability_enable_vm_dashboard | bool
+
+- name: Configure Prometheus node alert rules
+  ansible.builtin.include_tasks: prometheus_alert_rules.yml
+  when: monitoring_observability_enable_node_alert_rules | bool
+
+- name: Configure Prometheus node recording rules
+  ansible.builtin.include_tasks: prometheus_recording_rules.yml
+  when: monitoring_observability_enable_node_recording_rules | bool
+
 - name: Validate central monitoring stack
   ansible.builtin.include_tasks: validate.yml
-  when: monitoring_observability_install_stack | bool
+  

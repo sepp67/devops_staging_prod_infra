@@ -1,0 +1,40 @@
+groups:
+  - name: node-recording-rules
+    rules:
+      - record: instance:node_cpu_usage_percent:avg5m
+        expr: |
+          100 - (
+            avg by(instance, environment, host, project) (
+              rate(node_cpu_seconds_total{job="{{ monitoring_observability_node_job_name }}", mode="idle"}[5m])
+            ) * 100
+          )
+
+      - record: instance:node_memory_usage_percent
+        expr: |
+          (
+            1 - (
+              node_memory_MemAvailable_bytes{job="{{ monitoring_observability_node_job_name }}"}
+              /
+              node_memory_MemTotal_bytes{job="{{ monitoring_observability_node_job_name }}"}
+            )
+          ) * 100
+
+      - record: instance:node_root_filesystem_free_percent
+        expr: |
+          (
+            node_filesystem_avail_bytes{job="{{ monitoring_observability_node_job_name }}", fstype!~"tmpfs|overlay", mountpoint="/"}
+            /
+            node_filesystem_size_bytes{job="{{ monitoring_observability_node_job_name }}", fstype!~"tmpfs|overlay", mountpoint="/"}
+          ) * 100
+
+      - record: environment:node_instances_up:count
+        expr: |
+          count by(environment) (
+            up{job="{{ monitoring_observability_node_job_name }}"} == 1
+          )
+
+      - record: environment:node_instances_down:count
+        expr: |
+          count by(environment) (
+            up{job="{{ monitoring_observability_node_job_name }}"} == 0
+          )

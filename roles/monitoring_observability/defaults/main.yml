@@ -66,3 +66,19 @@ monitoring_observability_prometheus_reload_url: "http://127.0.0.1:9090/-/reload"
 
 monitoring_observability_loki_uid: "10001"
 monitoring_observability_loki_gid: "10001"
+
+monitoring_observability_enable_vm_dashboard: true
+monitoring_observability_enable_node_alert_rules: true
+monitoring_observability_enable_node_recording_rules: true
+
+monitoring_observability_node_alert_rules_file: "{{ monitoring_observability_prometheus_rules_dir }}/node-alerts.yml"
+monitoring_observability_node_recording_rules_file: "{{ monitoring_observability_prometheus_rules_dir }}/node-recording-rules.yml"
+
+monitoring_observability_dashboard_refresh: 30s
+monitoring_observability_vm_dashboard_uid: vm-fleet-overview
+
+monitoring_observability_node_job_name: node
+
+monitoring_observability_cpu_warning_threshold: 80
+monitoring_observability_memory_warning_threshold: 90
+monitoring_observability_disk_free_ratio_threshold: 0.10
