@@ -12,8 +12,8 @@
     mode: "0644"
   notify: Restart monitoring stack  
 
-- name: Deploy blackbox overview dashboard
-  ansible.builtin.template:
-    src: dashboard-blackbox-overview.json.j2
-    dest: "{{ monitoring_observability_grafana_dashboards_dir }}/blackbox-overview.json"
-    mode: "0644"
+#- name: Deploy blackbox overview dashboard
+#  ansible.builtin.template:
+#    src: dashboard-blackbox-overview.json.j2
+#    dest: "{{ monitoring_observability_grafana_dashboards_dir }}/blackbox-overview.json"
+#    mode: "0644"

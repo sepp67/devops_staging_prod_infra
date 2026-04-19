@@ -43,6 +43,7 @@ monitoring_observability_grafana_dashboards_dir: "{{ monitoring_observability_gr
 monitoring_observability_grafana_provisioning_dir: "{{ monitoring_observability_grafana_dir }}/provisioning"
 monitoring_observability_grafana_datasources_dir: "{{ monitoring_observability_grafana_provisioning_dir }}/datasources"
 monitoring_observability_grafana_dashboards_provisioning_dir: "{{ monitoring_observability_grafana_provisioning_dir }}/dashboards"
+monitoring_observability_grafana_provider_file: "{{ monitoring_observability_grafana_dashboards_provisioning_dir }}/dashboards.yml"
 
 monitoring_observability_grafana_admin_user: admin
 monitoring_observability_grafana_admin_password: changeme
