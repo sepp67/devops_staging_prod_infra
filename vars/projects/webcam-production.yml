@@ -1,5 +1,11 @@
 ---
 project_enabled: true
+project_healthcheck_path: /
+project_healthcheck_enabled: true
+project_monitoring_enabled: true
+project_node_exporter_enabled: true
+project_promtail_enabled: true
+
 project_name: webcam-stream
 project_key: webcam-stream
 project_env: production
@@ -17,8 +23,7 @@ project_host_bind_ip: 0.0.0.0
 project_host_bind_port: 18010
 project_restart_policy: unless-stopped
 
-project_healthcheck_path: /
-project_healthcheck_enabled: true
+
 
 project_env_vars:
   RTSP_URL: "rtsp://{{ vault_webcam_rtsp_user }}:{{ vault_webcam_rtsp_password }}@{{ webcam_camera_ip }}:554/Preview_01_main"
@@ -36,9 +41,7 @@ project_env_vars:
 project_volumes:
   - /opt/webcam-stream/gallery:/var/www/html/gallery
 
-project_monitoring_enabled: true
-project_node_exporter_enabled: true
-project_promtail_enabled: true
+
 
 project_labels:
   environment: production
