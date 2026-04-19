@@ -194,7 +194,7 @@
       "targets": [
         {
           "expr": "instance:node_cpu_usage_percent:avg5m",
-          "legendFormat": "{{host}} ({{environment}})",
+          "legendFormat": "{% raw %}{{host}} ({{environment}}){% endraw %}",
           "refId": "A"
         }
       ],
@@ -231,7 +231,7 @@
       "targets": [
         {
           "expr": "instance:node_memory_usage_percent",
-          "legendFormat": "{{host}} ({{environment}})",
+          "legendFormat": "{% raw %}{{host}} ({{environment}}){% endraw %}",
           "refId": "A"
         }
       ],
@@ -268,7 +268,7 @@
       "targets": [
         {
           "expr": "100 - instance:node_root_filesystem_free_percent",
-          "legendFormat": "{{host}} ({{environment}})",
+          "legendFormat": "{% raw %}{{host}} ({{environment}}){% endraw %}",
           "refId": "A"
         }
       ],
