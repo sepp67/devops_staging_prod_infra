@@ -4,16 +4,19 @@
     src: grafana-dashboards-provider.yml.j2
     dest: "{{ monitoring_observability_grafana_provider_file }}"
     mode: "0644"
+  notify: Restart monitoring stack
 
 - name: Deploy VM fleet overview dashboard
   ansible.builtin.template:
     src: dashboard-vm-fleet-overview.json.j2
     dest: "{{ monitoring_observability_grafana_dashboards_dir }}/vm-fleet-overview.json"
     mode: "0644"
-  notify: Restart monitoring stack  
+  notify: Restart monitoring stack
 
-#- name: Deploy blackbox overview dashboard
-#  ansible.builtin.template:
-#    src: dashboard-blackbox-overview.json.j2
-#    dest: "{{ monitoring_observability_grafana_dashboards_dir }}/blackbox-overview.json"
-#    mode: "0644"
+- name: Deploy blackbox overview dashboard
+  ansible.builtin.template:
+    src: dashboard-blackbox-overview.json.j2
+    dest: "{{ monitoring_observability_grafana_dashboards_dir }}/blackbox-overview.json"
+    mode: "0644"
+  when: monitoring_observability_enable_blackbox_dashboard | bool
+  notify: Restart monitoring stack

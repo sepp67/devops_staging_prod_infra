@@ -1,6 +1,11 @@
 ---
 monitoring_observability_install_stack: true
 
+monitoring_observability_enable_vm_dashboard: true
+monitoring_observability_enable_node_alert_rules: true
+monitoring_observability_enable_node_recording_rules: true
+monitoring_observability_enable_blackbox_dashboard: false
+
 monitoring_observability_root_dir: /opt/monitoring
 monitoring_observability_compose_path: "{{ monitoring_observability_root_dir }}/compose.yml"
 monitoring_observability_timezone: Europe/Paris
@@ -25,9 +30,14 @@ monitoring_observability_prometheus_config_path: "{{ monitoring_observability_pr
 monitoring_observability_prometheus_rules_dir: "{{ monitoring_observability_prometheus_dir }}/rules"
 monitoring_observability_prometheus_data_dir: "{{ monitoring_observability_prometheus_dir }}/data"
 
+monitoring_observability_prometheus_alert_rules_file: "{{ monitoring_observability_prometheus_rules_dir }}/alert-rules.yml"
+monitoring_observability_prometheus_recording_rules_file: "{{ monitoring_observability_prometheus_rules_dir }}/recording-rules.yml"
+
 monitoring_observability_loki_dir: "{{ monitoring_observability_root_dir }}/loki"
 monitoring_observability_loki_config_path: "{{ monitoring_observability_loki_dir }}/loki.yml"
 monitoring_observability_loki_data_dir: "{{ monitoring_observability_loki_dir }}/data"
+monitoring_observability_loki_uid: "10001"
+monitoring_observability_loki_gid: "10001"
 
 monitoring_observability_blackbox_dir: "{{ monitoring_observability_root_dir }}/blackbox"
 monitoring_observability_blackbox_config_path: "{{ monitoring_observability_blackbox_dir }}/blackbox.yml"
@@ -45,11 +55,10 @@ monitoring_observability_grafana_datasources_dir: "{{ monitoring_observability_g
 monitoring_observability_grafana_dashboards_provisioning_dir: "{{ monitoring_observability_grafana_provisioning_dir }}/dashboards"
 monitoring_observability_grafana_provider_file: "{{ monitoring_observability_grafana_dashboards_provisioning_dir }}/dashboards.yml"
 
-monitoring_observability_prometheus_alert_rules_file: "{{ monitoring_observability_prometheus_rules_dir }}/alert-rules.yml"
-monitoring_observability_prometheus_recording_rules_file: "{{ monitoring_observability_prometheus_rules_dir }}/recording-rules.yml"
-
 monitoring_observability_grafana_admin_user: admin
 monitoring_observability_grafana_admin_password: changeme
+monitoring_observability_grafana_uid: "472"
+monitoring_observability_grafana_gid: "472"
 
 monitoring_observability_prometheus_file_sd_root: /etc/prometheus/file_sd
 monitoring_observability_prometheus_node_targets_dir: "{{ monitoring_observability_prometheus_file_sd_root }}/node_targets"
@@ -67,16 +76,6 @@ monitoring_observability_grafana_default_datasource: Prometheus
 monitoring_observability_grafana_dashboard_folder: Infrastructure
 
 monitoring_observability_prometheus_reload_url: "http://127.0.0.1:9090/-/reload"
-
-monitoring_observability_loki_uid: "10001"
-monitoring_observability_loki_gid: "10001"
-
-monitoring_observability_enable_vm_dashboard: true
-monitoring_observability_enable_node_alert_rules: true
-monitoring_observability_enable_node_recording_rules: true
-
-monitoring_observability_node_alert_rules_file: "{{ monitoring_observability_prometheus_rules_dir }}/node-alerts.yml"
-monitoring_observability_node_recording_rules_file: "{{ monitoring_observability_prometheus_rules_dir }}/node-recording-rules.yml"
 
 monitoring_observability_dashboard_refresh: 30s
 monitoring_observability_vm_dashboard_uid: vm-fleet-overview
