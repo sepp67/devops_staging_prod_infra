@@ -45,6 +45,9 @@ monitoring_observability_grafana_datasources_dir: "{{ monitoring_observability_g
 monitoring_observability_grafana_dashboards_provisioning_dir: "{{ monitoring_observability_grafana_provisioning_dir }}/dashboards"
 monitoring_observability_grafana_provider_file: "{{ monitoring_observability_grafana_dashboards_provisioning_dir }}/dashboards.yml"
 
+monitoring_observability_prometheus_alert_rules_file: "{{ monitoring_observability_prometheus_rules_dir }}/alert-rules.yml"
+monitoring_observability_prometheus_recording_rules_file: "{{ monitoring_observability_prometheus_rules_dir }}/recording-rules.yml"
+
 monitoring_observability_grafana_admin_user: admin
 monitoring_observability_grafana_admin_password: changeme
 
