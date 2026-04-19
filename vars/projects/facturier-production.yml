@@ -22,7 +22,7 @@ project_healthcheck_path: /
 project_env_vars: {}
 project_volumes: []
 
-project_healthcheck_enabled: false
+project_healthcheck_enabled: true
 
 project_monitoring_enabled: true
 project_node_exporter_enabled: true

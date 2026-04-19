@@ -18,7 +18,7 @@ project_host_bind_port: 18010
 project_restart_policy: unless-stopped
 
 project_healthcheck_path: /
-project_healthcheck_enabled: false
+project_healthcheck_enabled: true
 
 project_env_vars:
   RTSP_URL: "rtsp://{{ vault_webcam_rtsp_user }}:{{ vault_webcam_rtsp_password }}@{{ webcam_camera_ip }}:554/Preview_01_main"
