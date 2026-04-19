@@ -69,7 +69,7 @@
 - name: Deploy Grafana dashboards provider provisioning
   ansible.builtin.template:
     src: grafana-dashboards-provider.yml.j2
-    dest: "{{ monitoring_observability_grafana_dashboards_provisioning_dir }}/dashboards.yml"
+    dest: "{{ monitoring_observability_grafana_provider_file }}"
     mode: "0644"
   notify: Restart monitoring stack
 
