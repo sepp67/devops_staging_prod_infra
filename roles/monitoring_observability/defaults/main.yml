@@ -63,3 +63,6 @@ monitoring_observability_grafana_default_datasource: Prometheus
 monitoring_observability_grafana_dashboard_folder: Infrastructure
 
 monitoring_observability_prometheus_reload_url: "http://127.0.0.1:9090/-/reload"
+
+monitoring_observability_loki_uid: "10001"
+monitoring_observability_loki_gid: "10001"

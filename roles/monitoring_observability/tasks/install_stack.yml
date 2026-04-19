@@ -30,6 +30,14 @@
     group: "472"
     mode: "0755"
 
+- name: Ensure Loki data dir ownership
+  ansible.builtin.file:
+    path: "{{ monitoring_observability_loki_data_dir }}"
+    state: directory
+    owner: "{{ monitoring_observability_loki_uid }}"
+    group: "{{ monitoring_observability_loki_gid }}"
+    mode: "0755"
+
 - name: Deploy Prometheus configuration
   ansible.builtin.template:
     src: prometheus.yml.j2
@@ -78,3 +86,4 @@
     files:
       - "{{ monitoring_observability_compose_path }}"
     state: present
+
