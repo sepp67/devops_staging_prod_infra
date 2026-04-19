@@ -1,7 +1,8 @@
 ---
 - name: Deploy Prometheus recording rules
   ansible.builtin.template:
-    src: recording-rules.yml.j2
+    src: recording-rules-node.yml.j2
     dest: "{{ monitoring_observability_prometheus_recording_rules_file }}"
     mode: "0644"
   notify: Restart monitoring stack
+  
