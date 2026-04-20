@@ -1,5 +1,5 @@
 ---
-webcam_camera_ip: "192.168.8.101"
+webcam_camera_ip: "192.168.8.100"
 webcam_latitude: "48.4636"
 webcam_longitude: "7.4811"
 webcam_timezone: "Europe/Paris"
