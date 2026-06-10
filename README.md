@@ -1,96 +1,226 @@
-# 🚀 DevOps Staging / Production Infrastructure
+# devops_staging_prod_infra
 
-A complete DevOps infrastructure to deploy, expose, and monitor applications across **staging** and **production** environments, built with a modular, automated, and production-oriented approach.
+Infrastructure-as-Code repository used to deploy and operate a small production and staging environment based on Proxmox, Ansible, Docker and Caddy.
 
----
+The goal of this project is to provide a simple and reproducible way to deploy web applications on dedicated virtual machines while keeping the architecture easy to understand and maintain.
 
-## 🎯 Project Goal
-
-This project serves as a **real-world DevOps showcase**, not a theoretical lab.
-
-It is designed to:
-
-- 🔧 Deploy applications quickly (web, APIs, static sites)
-- 🌐 Expose services through a centralized reverse proxy
-- 📊 Provide observability (metrics, logs, monitoring)
-
-It is actively used to:
-- host real services
-- validate architecture decisions
-- demonstrate hands-on DevOps capabilities
-
----
-
-## 🧠 High-Level Architecture
-
-
-Internet
-│
-▼
-[ Proxy VM (Caddy) ]
-│
-├── lavallee.staging.local → Web VM (Nginx)
-├── facturier.staging.local → Containerized app
-└── other services
-
-[ Application VMs ]
-├── vm-lavallee-staging
-├── vm-facturier-staging
-└── additional project VMs
-
-[ Monitoring VM ]
-├── Prometheus
-├── Grafana
-├── Loki / Promtail
-
-## ⚙️ Tech Stack
-
-### 🐧 Infrastructure
-- Linux (Debian / Ubuntu)
-- Proxmox (virtualization)
-- Private networking with controlled exposure
-
-### 🔁 Automation
-- Ansible (deployment & configuration)
-- modular roles
-- structured inventory (staging / production)
-
-### 🌐 Web Layer
-- Caddy (reverse proxy, TLS, routing)
-- Nginx (application web server)
-
-### 📦 Containerization
-- Docker
-- services packaged as containers
-
-### 📊 Observability
-- Prometheus (metrics)
-- Grafana (dashboards)
-- Loki + Promtail (log aggregation)
-
----
-
-## 📁 Project Structure
+## Architecture Overview
 
 ```text
-ansible/
+Internet
+    |
+    | HTTPS
+    v
++------------------+
+|  VM Proxy        |
+|  Caddy           |
+|  Let's Encrypt   |
++------------------+
+          |
+          +------------------------------+
+          |                              |
+          v                              v
+
++------------------+          +------------------+
+| VM Application   |          | VM Application   |
+| Docker           |          | Docker           |
+| Project A        |          | Project B        |
++------------------+          +------------------+
+```
+
+Only the reverse proxy is exposed to the Internet.
+
+Application VMs are reachable only through the internal network.
+
+---
+
+## Features
+
+* Automated VM deployment with Ansible
+* Project-based configuration
+* Docker application deployment
+* Automatic Let's Encrypt certificates
+* Reverse proxy management with Caddy
+* Production and staging environments
+* Health checks
+* Reusable VM templates
+* Infrastructure fully stored in Git
+
+---
+
+## Repository Structure
+
+```text
+devops_staging_prod_infra/
+
 ├── inventory/
-│   ├── staging.ini
-│   ├── production.ini
-│   └── group_vars/
+│   ├── production/
+│   └── staging/
 │
 ├── playbooks/
+│   ├── site-production.yml
 │   ├── site-staging.yml
-│   └── site-production.yml
-│
-├── roles/
-│   ├── proxy_caddy/
-│   ├── monitoring/
-│   ├── common/
-│   └── ...
+│   ├── add-vm.yml
+│   ├── remove-vm.yml
+│   └── bootstrap-vm.yml
 │
 ├── vars/
 │   └── projects/
+│       ├── lavallee-production.yml
+│       ├── facturier-production.yml
+│       ├── webcam-production.yml
+│       ├── lavallee-staging.yml
 │       ├── facturier-staging.yml
-│       ├── lavallee-site-staging.yml
-│       └── ...
+│       └── webcam-staging.yml
+│
+├── roles/
+│   ├── project_registry/
+│   ├── project_context/
+│   ├── base_linux/
+│   ├── docker_host/
+│   ├── app_image_deploy/
+│   ├── caddy_proxy/
+│   └── healthcheck/
+│
+└── README.md
+```
+
+---
+
+## Project Definition
+
+Every application is described through a dedicated file in:
+
+```text
+vars/projects/
+```
+
+Example:
+
+```yaml
+project_name: lavallee
+project_env: production
+project_vm: vm-lavallee-prod
+
+project_domain: lavallee.tech
+
+project_image: ghcr.io/example/application:latest
+
+project_host_bind_port: 18080
+project_container_port: 80
+
+project_expose_via_proxy: true
+```
+
+The project definition becomes the single source of truth.
+
+---
+
+## Deployment Workflow
+
+### 1. Build project registry
+
+The project registry is generated from all files stored in:
+
+```text
+vars/projects/
+```
+
+### 2. Configure VMs
+
+Each VM receives:
+
+* Base Linux configuration
+* Docker installation
+* Application deployment
+
+### 3. Configure reverse proxy
+
+Caddy automatically generates:
+
+* Virtual hosts
+* Reverse proxy rules
+* Let's Encrypt certificates
+
+### 4. Verify deployment
+
+Health checks verify that applications are reachable.
+
+---
+
+## Production Deployment
+
+Deploy the complete production environment:
+
+```bash
+ansible-playbook \
+  -i inventory/production/hosts.ini \
+  playbooks/site-production.yml \
+  --ask-vault-password
+```
+
+---
+
+## Staging Deployment
+
+Deploy the staging environment:
+
+```bash
+ansible-playbook \
+  -i inventory/staging/hosts.ini \
+  playbooks/site-staging.yml \
+  --ask-vault-password
+```
+
+---
+
+## Connectivity Test
+
+Verify SSH connectivity:
+
+```bash
+ansible \
+  -i inventory/production/hosts.ini \
+  production \
+  -m ping \
+  --ask-vault-password
+```
+
+---
+
+## Reverse Proxy
+
+Caddy provides:
+
+* HTTPS termination
+* Automatic certificate management
+* Domain routing
+* Access logging
+
+Typical domains:
+
+```text
+lavallee.tech
+facturier.lavallee.tech
+webcam.lavallee.tech
+```
+
+---
+
+## Design Principles
+
+This repository intentionally focuses on:
+
+* simplicity
+* reproducibility
+* project isolation
+* infrastructure documentation
+* easy maintenance
+
+Application monitoring is intentionally managed outside of this repository in dedicated monitoring projects.
+
+---
+
+## License
+
+GNU GPL v3
