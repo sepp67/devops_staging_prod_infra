@@ -80,3 +80,12 @@
       - "VM: {{ project_vm }}"
       - "Proxy exposed: {{ project_expose_via_proxy }}"
       - "Monitoring enabled: {{ project_monitoring_enabled }}"
+
+- name: Render RTSP_URL for webcam projects
+  ansible.builtin.set_fact:
+    project_env_vars: "{{ project_env_vars | combine({'RTSP_URL': rendered_rtsp_url}) }}"
+  vars:
+    rendered_rtsp_url: "rtsp://{{ vault_webcam_rtsp_user }}:{{ vault_webcam_rtsp_password }}@{{ webcam_camera_ip }}:554/Preview_01_main"
+  when:
+    - project_name == "webcam-stream"
+    - project_env_vars.RTSP_URL is defined
