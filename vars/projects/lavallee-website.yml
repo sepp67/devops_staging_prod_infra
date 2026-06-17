@@ -11,5 +11,5 @@ host_port: 18082
 domain: "{{ lavallee_domain }}"
 route_path: /
 healthcheck_url: "http://127.0.0.1:18082/"
-environment: {}
+docker_environment: {}
 volumes: []

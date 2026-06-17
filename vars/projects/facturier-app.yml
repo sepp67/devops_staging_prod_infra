@@ -13,6 +13,6 @@ domain: "{{ facturier_domain }}"
 route_path: /app/*
 strip_prefix: true
 healthcheck_url: "http://{{ backend_host }}:18081/health"
-environment:
+docker_environment:
   APP_ENV: "{{ environment_name }}"
 volumes: []

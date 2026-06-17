@@ -8,9 +8,9 @@ services:
     restart: unless-stopped
     ports:
       - "{{ docker_bind_address }}:{{ project.host_port }}:{{ project.container_port }}"
-{% if project.environment %}
+{% if project.docker_environment %}
     environment:
-{% for key, value in project.environment.items() %}
+{% for key, value in project.docker_environment.items() %}
       {{ key }}: "{{ value }}"
 {% endfor %}
 {% endif %}

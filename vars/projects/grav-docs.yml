@@ -12,6 +12,6 @@ host_port: 18084
 domain: docs.lavallee.tech
 route_path: /
 healthcheck_url: "http://{{ backend_host }}:18084/"
-environment: {}
+docker_environment: {}
 volumes:
   - /opt/grav-docs/data:/var/www/html/user

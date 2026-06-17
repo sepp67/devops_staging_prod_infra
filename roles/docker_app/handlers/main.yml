@@ -1,6 +1,7 @@
 ---
-- name: restart app
+- name: Restart app
   community.docker.docker_compose_v2:
     project_src: "{{ apps_base_dir }}/{{ project.project_name }}"
     state: restarted
+  become: true
   become_user: "{{ deploy_user }}"

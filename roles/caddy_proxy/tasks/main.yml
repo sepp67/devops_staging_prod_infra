@@ -4,7 +4,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 - name: Install prerequisites
-  apt:
+  ansible.builtin.apt:
     name:
       - debian-keyring
       - debian-archive-keyring
@@ -14,14 +14,14 @@
     update_cache: true
 
 - name: Add Caddy GPG key
-  get_url:
+  ansible.builtin.get_url:
     url: https://dl.cloudsmith.io/public/caddy/stable/gpg.key
     dest: /etc/apt/keyrings/caddy-stable.asc
     mode: "0644"
     force: false
 
 - name: Add Caddy APT repository
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: >-
       deb [signed-by=/etc/apt/keyrings/caddy-stable.asc]
       https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main
@@ -29,13 +29,13 @@
     state: present
 
 - name: Install Caddy
-  apt:
+  ansible.builtin.apt:
     name: caddy
     state: present
     update_cache: true
 
 - name: Create Caddy directories
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     owner: caddy
@@ -46,7 +46,7 @@
     - "{{ caddy_data_dir }}"
 
 - name: Create Caddy log directory
-  file:
+  ansible.builtin.file:
     path: "{{ caddy_log_dir }}"
     state: directory
     owner: caddy
@@ -54,7 +54,7 @@
     mode: "0755"
 
 - name: Create Caddy systemd override directory
-  file:
+  ansible.builtin.file:
     path: /etc/systemd/system/caddy.service.d
     state: directory
     owner: root
@@ -62,7 +62,7 @@
     mode: "0755"
 
 - name: Deploy Caddy systemd override (disable managed log dir)
-  copy:
+  ansible.builtin.copy:
     content: |
       [Service]
       LogsDirectory=
@@ -70,20 +70,20 @@
     owner: root
     group: root
     mode: "0644"
-  notify: restart caddy
+  notify: Restart caddy
 
 - name: Deploy Caddyfile
-  template:
+  ansible.builtin.template:
     src: Caddyfile.j2
     dest: "{{ caddy_caddyfile }}"
     owner: caddy
     group: caddy
     mode: "0640"
     validate: caddy validate --adapter caddyfile --config %s
-  notify: reload caddy
+  notify: Reload caddy
 
 - name: Enable and start Caddy
-  systemd:
+  ansible.builtin.systemd:
     name: caddy
     enabled: true
     state: started

@@ -4,35 +4,36 @@
 #
 # Reçoit la variable `project` avec les champs :
 #   project_name, image, container_port, host_port,
-#   healthcheck_url, environment (dict), volumes (list)
+#   healthcheck_url, docker_environment (dict), volumes (list)
 # ─────────────────────────────────────────────────────────────────────────────
 
-- name: "{{ project.project_name }} | Create app directory"
-  file:
+- name: Create app directory for {{ project.project_name }}
+  ansible.builtin.file:
     path: "{{ apps_base_dir }}/{{ project.project_name }}"
     state: directory
     owner: "{{ deploy_user }}"
     group: "{{ deploy_user }}"
     mode: "0750"
 
-- name: "{{ project.project_name }} | Deploy docker-compose.yml"
-  template:
+- name: Deploy docker-compose.yml for {{ project.project_name }}
+  ansible.builtin.template:
     src: docker-compose.yml.j2
     dest: "{{ apps_base_dir }}/{{ project.project_name }}/docker-compose.yml"
     owner: "{{ deploy_user }}"
     group: "{{ deploy_user }}"
     mode: "0640"
-  notify: restart app
+  notify: Restart app
 
-- name: "{{ project.project_name }} | Pull latest image"
+- name: Pull latest image for {{ project.project_name }}
   community.docker.docker_compose_v2:
     project_src: "{{ apps_base_dir }}/{{ project.project_name }}"
     pull: always
     state: present
+  become: true
   become_user: "{{ deploy_user }}"
 
-- name: "{{ project.project_name }} | Wait for healthcheck"
-  uri:
+- name: Wait for healthcheck for {{ project.project_name }}
+  ansible.builtin.uri:
     url: "{{ project.healthcheck_url }}"
     status_code: 200
     return_content: false

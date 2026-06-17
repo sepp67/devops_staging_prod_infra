@@ -11,5 +11,5 @@ host_port: 18080
 domain: "{{ facturier_domain }}"
 route_path: /
 healthcheck_url: "http://{{ backend_host }}:18080/"
-environment: {}
+docker_environment: {}
 volumes: []

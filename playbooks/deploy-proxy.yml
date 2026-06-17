@@ -11,14 +11,14 @@
 
   pre_tasks:
     - name: Load project definitions from vars/projects/
-      include_vars:
+      ansible.builtin.include_vars:
         file: "{{ projects_vars_dir }}/{{ item }}.yml"
         name: "_proj_{{ item | replace('-', '_') }}"
       loop: "{{ active_projects }}"
       tags: always
 
     - name: Build projects list
-      set_fact:
+      ansible.builtin.set_fact:
         projects: >-
           {{
             active_projects
