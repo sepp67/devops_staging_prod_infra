@@ -1,77 +1,89 @@
 ---
-- name: Ensure Caddy base directories exist
-  ansible.builtin.file:
+# ─────────────────────────────────────────────────────────────────────────────
+# caddy_proxy — Installe Caddy et génère le Caddyfile depuis le registre projets
+# ─────────────────────────────────────────────────────────────────────────────
+
+- name: Install prerequisites
+  apt:
+    name:
+      - debian-keyring
+      - debian-archive-keyring
+      - apt-transport-https
+      - curl
+    state: present
+    update_cache: true
+
+- name: Add Caddy GPG key
+  get_url:
+    url: https://dl.cloudsmith.io/public/caddy/stable/gpg.key
+    dest: /etc/apt/keyrings/caddy-stable.asc
+    mode: "0644"
+    force: false
+
+- name: Add Caddy APT repository
+  apt_repository:
+    repo: >-
+      deb [signed-by=/etc/apt/keyrings/caddy-stable.asc]
+      https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main
+    filename: caddy-stable
+    state: present
+
+- name: Install Caddy
+  apt:
+    name: caddy
+    state: present
+    update_cache: true
+
+- name: Create Caddy directories
+  file:
     path: "{{ item }}"
+    state: directory
+    owner: caddy
+    group: caddy
+    mode: "0750"
+  loop:
+    - "{{ caddy_config_dir }}"
+    - "{{ caddy_data_dir }}"
+
+- name: Create Caddy log directory
+  file:
+    path: "{{ caddy_log_dir }}"
+    state: directory
+    owner: caddy
+    group: caddy
+    mode: "0755"
+
+- name: Create Caddy systemd override directory
+  file:
+    path: /etc/systemd/system/caddy.service.d
     state: directory
     owner: root
     group: root
     mode: "0755"
-  loop:
-    - "{{ caddy_compose_dir }}"
-    - "{{ caddy_sites_dir }}"
-    - "{{ caddy_data_dir }}"
-    - "{{ caddy_config_dir }}"
-    - "{{ caddy_log_dir }}"
 
-- name: Render Caddy docker compose file
-  ansible.builtin.template:
-    src: compose.yml.j2
-    dest: "{{ caddy_compose_dir }}/{{ caddy_compose_filename }}"
+- name: Deploy Caddy systemd override (log path)
+  copy:
+    content: |
+      [Service]
+      LogsDirectory=caddy
+    dest: /etc/systemd/system/caddy.service.d/logs.conf
     owner: root
     group: root
     mode: "0644"
-  notify: Restart Caddy stack
+  notify: restart caddy
 
-- name: Render main Caddyfile
-  ansible.builtin.template:
+- name: Deploy Caddyfile
+  template:
     src: Caddyfile.j2
-    dest: "{{ caddy_compose_dir }}/{{ caddy_main_config_filename }}"
-    owner: root
-    group: root
-    mode: "0644"
-  notify:
-    - Validate Caddy configuration
-    - Reload Caddy configuration
+    dest: "{{ caddy_caddyfile }}"
+    owner: caddy
+    group: caddy
+    mode: "0640"
+    validate: caddy validate --adapter caddyfile --config %s
+  notify: reload caddy
 
-- name: Ensure Caddy stack is started
-  community.docker.docker_compose_v2:
-    project_src: "{{ caddy_compose_dir }}"
-    files:
-      - "{{ caddy_compose_filename }}"
-    state: present
-    timeout: 60
-
-- name: Build upstream address for current project
-  ansible.builtin.set_fact:
-    project_upstream: "{{ hostvars[project_vm].ansible_host }}:{{ project_host_bind_port }}"
-  when:
-    - project_enabled | default(true) | bool
-    - project_expose_via_proxy | default(false) | bool
-
-- name: Render per-project Caddy site file
-  ansible.builtin.template:
-    src: site.caddy.j2
-    dest: "{{ caddy_sites_dir }}/{{ project_name }}.caddy"
-    owner: root
-    group: root
-    mode: "0644"
-  when:
-    - project_enabled | default(true) | bool
-    - project_expose_via_proxy | default(false) | bool
-  notify:
-    - Validate Caddy configuration
-    - Reload Caddy configuration
-
-- name: Remove per-project Caddy site file when project is disabled
-  ansible.builtin.file:
-    path: "{{ caddy_sites_dir }}/{{ project_name }}.caddy"
-    state: absent
-  when:
-    - not (project_enabled | default(true) | bool)
-      or not (project_expose_via_proxy | default(false) | bool)
-  notify:
-    - Validate Caddy configuration
-    - Reload Caddy configuration
-
-- name: Flush handlers now
-  ansible.builtin.meta: flush_handlers
+- name: Enable and start Caddy
+  systemd:
+    name: caddy
+    enabled: true
+    state: started

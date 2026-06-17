@@ -1,0 +1,15 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Projet : facturier-landing
+# Landing page publique de facturier.lavallee.tech
+# ─────────────────────────────────────────────────────────────────────────────
+project_name: facturier-landing
+project_type: docker_app
+image: ghcr.io/sepp67/facturier-landing:latest
+container_port: 80
+host_port: 18080
+domain: "{{ facturier_domain }}"
+route_path: /
+healthcheck_url: "http://{{ backend_host }}:18080/"
+environment: {}
+volumes: []

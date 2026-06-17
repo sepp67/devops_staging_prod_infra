@@ -1,0 +1,17 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Projet : grav-docs
+# Documentation interne Grav — volume persistant requis
+# project_type: grav_stack → déployé par le rôle grav_stack, pas docker_app
+# ─────────────────────────────────────────────────────────────────────────────
+project_name: grav-docs
+project_type: grav_stack
+image: ghcr.io/sepp67/grav:latest
+container_port: 80
+host_port: 18084
+domain: docs.lavallee.tech
+route_path: /
+healthcheck_url: "http://{{ backend_host }}:18084/"
+environment: {}
+volumes:
+  - /opt/grav-docs/data:/var/www/html/user

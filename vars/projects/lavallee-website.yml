@@ -1,0 +1,15 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Projet : lavallee-website
+# Site portfolio/blog Hugo + Nginx
+# ─────────────────────────────────────────────────────────────────────────────
+project_name: lavallee-website
+project_type: docker_app
+image: ghcr.io/sepp67/ansible-role-website-lavallee:latest
+container_port: 80
+host_port: 18082
+domain: "{{ lavallee_domain }}"
+route_path: /
+healthcheck_url: "http://127.0.0.1:18082/"
+environment: {}
+volumes: []

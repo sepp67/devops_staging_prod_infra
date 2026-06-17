@@ -1,0 +1,18 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Projet : facturier-app
+# Application démo Factur-X, exposée sur /app via Caddy
+# strip_prefix: true → Caddy retire /app avant de forwarder au conteneur
+# ─────────────────────────────────────────────────────────────────────────────
+project_name: facturier-app
+project_type: docker_app
+image: ghcr.io/sepp67/facturier-app:latest
+container_port: 8000
+host_port: 18081
+domain: "{{ facturier_domain }}"
+route_path: /app/*
+strip_prefix: true
+healthcheck_url: "http://{{ backend_host }}:18081/health"
+environment:
+  APP_ENV: "{{ environment_name }}"
+volumes: []

@@ -1,0 +1,43 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Variables communes — Production
+# Les secrets sont dans vault.yml (chiffré Ansible Vault).
+# ─────────────────────────────────────────────────────────────────────────────
+
+environment_name: production
+lavallee_domain: lavallee.tech
+facturier_domain: facturier.lavallee.tech
+grav_docs_domain: docs.lavallee.tech
+
+deploy_user: deploy
+apps_base_dir: /opt
+
+# ── Caddy ────────────────────────────────────────────────────────────────────
+# En production : Let's Encrypt via ACME
+caddy_tls_mode: acme
+caddy_email: admin@lavallee.tech
+
+# ── Registre de projets ───────────────────────────────────────────────────────
+projects_vars_dir: "{{ playbook_dir }}/../vars/projects"
+
+active_projects:
+  - lavallee-website
+  - facturier-landing
+  - facturier-app
+  - grav-docs
+
+# ── Backends Caddy ────────────────────────────────────────────────────────────
+backend_host: 10.20.1.11
+nextcloud_backend_host: 10.20.1.12
+
+# ── Nextcloud ─────────────────────────────────────────────────────────────────
+nextcloud_domain: nextcloud.lavallee.tech
+nextcloud_host_port: 18085
+nextcloud_trusted_proxies: "10.20.1.10"
+nextcloud_overwriteprotocol: https
+
+nextcloud_admin_user: "{{ vault_nextcloud_admin_user }}"
+nextcloud_admin_password: "{{ vault_nextcloud_admin_password }}"
+nextcloud_db_user: "{{ vault_nextcloud_db_user }}"
+nextcloud_db_password: "{{ vault_nextcloud_db_password }}"
+nextcloud_db_name: nextcloud
