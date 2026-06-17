@@ -12,7 +12,20 @@ host_port: 18081
 domain: "{{ facturier_domain }}"
 route_path: /app/*
 strip_prefix: true
+extra_routes:
+  - route_path: /api/*
+    strip_prefix: false
 healthcheck_url: "http://{{ backend_host }}:18081/health"
+healthcheck_path: /health
+command:
+  - uvicorn
+  - api:app
+  - --host
+  - 0.0.0.0
+  - --port
+  - "8000"
+  - --root-path
+  - /app
 docker_environment:
   APP_ENV: "{{ environment_name }}"
 volumes: []

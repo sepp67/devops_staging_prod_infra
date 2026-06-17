@@ -28,8 +28,8 @@ projects_vars_dir: "{{ playbook_dir }}/../vars/projects"
 # Ajouter une nouvelle app = ajouter son nom ici + créer vars/projects/<app>.yml
 active_projects:
   - lavallee-website
-#  - facturier-landing
-#  - facturier-app
+  - facturier-landing
+  - facturier-app
 #  - grav-docs
 
 # ── Backends Caddy ────────────────────────────────────────────────────────────

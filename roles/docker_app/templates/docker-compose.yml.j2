@@ -20,8 +20,11 @@ services:
       - "{{ vol }}"
 {% endfor %}
 {% endif %}
+{% if project.command is defined %}
+    command: {{ project.command | to_json }}
+{% endif %}
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:{{ project.container_port }}/"]
+      test: ["CMD", "curl", "-fs", "http://localhost:{{ project.container_port }}{{ project.healthcheck_path | default('/') }}"]
       interval: 30s
       timeout: 5s
       retries: 3

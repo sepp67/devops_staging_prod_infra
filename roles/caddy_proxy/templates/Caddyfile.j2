@@ -34,6 +34,15 @@
 {% endif %}
         reverse_proxy {{ backend_host }}:{{ p.host_port }}
     }
+{% for route in p.extra_routes | default([]) %}
+    # Route : {{ route.route_path }} → {{ p.project_name }}
+    handle {{ route.route_path }} {
+{% if route.strip_prefix is defined and route.strip_prefix %}
+        uri strip_prefix {{ route.route_path | regex_replace('/\*$', '') }}
+{% endif %}
+        reverse_proxy {{ backend_host }}:{{ p.host_port }}
+    }
+{% endfor %}
 {% else %}
     # Route : / → {{ p.project_name }}
     handle /* {
