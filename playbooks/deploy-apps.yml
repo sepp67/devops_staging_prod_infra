@@ -1,0 +1,54 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# deploy-apps.yml
+#
+# Charge le registre de projets depuis vars/projects/*.yml,
+# puis déploie chaque projet de type docker_app ou grav_stack.
+#
+# Pour ajouter une nouvelle application :
+#   1. Créer vars/projects/<app>.yml
+#   2. Ajouter le nom dans active_projects (inventories/*/group_vars/all.yml)
+#   → Aucun rôle à modifier.
+# ─────────────────────────────────────────────────────────────────────────────
+- name: Load project registry and deploy applications
+  hosts: apps
+  become: true
+
+  pre_tasks:
+    - name: Load project definitions from vars/projects/
+      ansible.builtin.include_vars:
+        file: "{{ projects_vars_dir }}/{{ item }}.yml"
+        name: "_proj_{{ item | replace('-', '_') }}"
+      loop: "{{ active_projects }}"
+      tags: always
+
+    - name: Build projects list
+      ansible.builtin.set_fact:
+        projects: >-
+          {{
+            active_projects
+            | map('replace', '-', '_')
+            | map('regex_replace', '^(.*)$', '_proj_\1')
+            | map('extract', hostvars[inventory_hostname])
+            | list
+          }}
+      tags: always
+
+  tasks:
+    - name: Deploy docker_app projects
+      ansible.builtin.include_role:
+        name: docker_app
+      vars:
+        project: "{{ item }}"
+      loop: "{{ projects | selectattr('project_type', 'equalto', 'docker_app') | list }}"
+      loop_control:
+        label: "{{ item.project_name }}"
+
+    - name: Deploy grav_stack projects
+      ansible.builtin.include_role:
+        name: grav_stack
+      vars:
+        project: "{{ item }}"
+      loop: "{{ projects | selectattr('project_type', 'equalto', 'grav_stack') | list }}"
+      loop_control:
+        label: "{{ item.project_name }}"

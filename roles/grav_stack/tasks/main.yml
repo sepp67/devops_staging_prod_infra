@@ -1,0 +1,7 @@
+---
+# grav_stack — À implémenter
+# Déploie Grav CMS avec volume persistant.
+# Voir : https://github.com/sepp67/ansible-role-grav
+- name: Grav_stack placeholder
+  ansible.builtin.debug:
+    msg: "grav_stack not yet implemented for {{ project.project_name }}"

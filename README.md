@@ -1,226 +1,172 @@
 # devops_staging_prod_infra
 
-Infrastructure-as-Code repository used to deploy and operate a small production and staging environment based on Proxmox, Ansible, Docker and Caddy.
+Infrastructure Ansible pour le déploiement des applications web en staging et production sur VMs Proxmox Debian 12.
 
-The goal of this project is to provide a simple and reproducible way to deploy web applications on dedicated virtual machines while keeping the architecture easy to understand and maintain.
+## Prérequis
 
-## Architecture Overview
+- Ansible ≥ 2.14
+- Accès SSH à toutes les VMs avec l'utilisateur `deploy`
+- Python 3 sur les VMs cibles
 
-```text
-Internet
-    |
-    | HTTPS
-    v
-+------------------+
-|  VM Proxy        |
-|  Caddy           |
-|  Let's Encrypt   |
-+------------------+
-          |
-          +------------------------------+
-          |                              |
-          v                              v
-
-+------------------+          +------------------+
-| VM Application   |          | VM Application   |
-| Docker           |          | Docker           |
-| Project A        |          | Project B        |
-+------------------+          +------------------+
+```bash
+pip install ansible
+ansible-galaxy install -r requirements.yml
 ```
 
-Only the reverse proxy is exposed to the Internet.
+## Structure
 
-Application VMs are reachable only through the internal network.
-
----
-
-## Features
-
-* Automated VM deployment with Ansible
-* Project-based configuration
-* Docker application deployment
-* Automatic Let's Encrypt certificates
-* Reverse proxy management with Caddy
-* Production and staging environments
-* Health checks
-* Reusable VM templates
-* Infrastructure fully stored in Git
-
----
-
-## Repository Structure
-
-```text
+```
 devops_staging_prod_infra/
-
-├── inventory/
-│   ├── production/
-│   └── staging/
-│
+├── ansible.cfg
+├── requirements.yml
+├── inventories/
+│   ├── staging/
+│   │   ├── hosts.yml                   # IPs des VMs staging
+│   │   └── group_vars/
+│   │       ├── all.yml                 # Variables staging (dont active_projects)
+│   │       └── vault.yml               # Secrets chiffrés (Vault)
+│   └── production/
+│       ├── hosts.yml                   # IPs des VMs production
+│       └── group_vars/
+│           ├── all.yml
+│           └── vault.yml
 ├── playbooks/
-│   ├── site-production.yml
-│   ├── site-staging.yml
-│   ├── add-vm.yml
-│   ├── remove-vm.yml
-│   └── bootstrap-vm.yml
-│
-├── vars/
-│   └── projects/
-│       ├── lavallee-production.yml
-│       ├── facturier-production.yml
-│       ├── webcam-production.yml
-│       ├── lavallee-staging.yml
-│       ├── facturier-staging.yml
-│       └── webcam-staging.yml
-│
+│   ├── site.yml                        # Point d'entrée : déploiement complet
+│   ├── deploy-docker-host.yml          # Docker Engine + Compose v2
+│   ├── deploy-apps.yml                 # Applications (charge le registre projets)
+│   ├── deploy-nextcloud.yml            # Stack Nextcloud dédiée
+│   └── deploy-proxy.yml                # Caddy (charge le registre projets)
 ├── roles/
-│   ├── project_registry/
-│   ├── project_context/
-│   ├── base_linux/
-│   ├── docker_host/
-│   ├── app_image_deploy/
-│   ├── caddy_proxy/
-│   └── healthcheck/
-│
-└── README.md
+│   ├── docker_host/                    # Installe Docker
+│   ├── docker_app/                     # Déploie une app Docker générique
+│   ├── caddy_proxy/                    # Reverse proxy Caddy
+│   ├── nextcloud_stack/                # Nextcloud + PostgreSQL + Redis (à venir)
+│   └── grav_stack/                     # Grav CMS avec volume persistant (à venir)
+└── vars/
+    ├── projects/                       # ← Registre de projets
+    │   ├── lavallee-website.yml
+    │   ├── facturier-landing.yml
+    │   ├── facturier-app.yml
+    │   └── grav-docs.yml
+    └── environments/
+        ├── staging.yml
+        └── production.yml
 ```
 
----
+## Registre de projets
 
-## Project Definition
+Chaque application est déclarée dans `vars/projects/<nom>.yml`.
 
-Every application is described through a dedicated file in:
+**Pour ajouter une nouvelle application :**
 
-```text
-vars/projects/
-```
-
-Example:
+1. Créer `vars/projects/mon-app.yml` :
 
 ```yaml
-project_name: lavallee
-project_env: production
-project_vm: vm-lavallee-prod
-
-project_domain: lavallee.tech
-
-project_image: ghcr.io/example/application:latest
-
-project_host_bind_port: 18080
-project_container_port: 80
-
-project_expose_via_proxy: true
+project_name: mon-app
+project_type: docker_app
+image: ghcr.io/sepp67/mon-app:latest
+container_port: 8080
+host_port: 18090
+domain: mon-app.lavallee.tech
+route_path: /
+healthcheck_url: "http://{{ backend_host }}:18090/"
+environment:
+  APP_ENV: "{{ environment_name }}"
+volumes: []
 ```
 
-The project definition becomes the single source of truth.
+2. Ajouter `mon-app` à `active_projects` dans `inventories/<env>/group_vars/all.yml` :
 
----
-
-## Deployment Workflow
-
-### 1. Build project registry
-
-The project registry is generated from all files stored in:
-
-```text
-vars/projects/
+```yaml
+active_projects:
+  - lavallee-website
+  - facturier-landing
+  - facturier-app
+  - grav-docs
+  - mon-app       # ← ajout
 ```
 
-### 2. Configure VMs
+**Aucun rôle à modifier.**
 
-Each VM receives:
+## Secrets (Ansible Vault)
 
-* Base Linux configuration
-* Docker installation
-* Application deployment
-
-### 3. Configure reverse proxy
-
-Caddy automatically generates:
-
-* Virtual hosts
-* Reverse proxy rules
-* Let's Encrypt certificates
-
-### 4. Verify deployment
-
-Health checks verify that applications are reachable.
-
----
-
-## Production Deployment
-
-Deploy the complete production environment:
+Les secrets ne sont jamais en clair dans le dépôt.
 
 ```bash
-ansible-playbook \
-  -i inventory/production/hosts.ini \
-  playbooks/site-production.yml \
-  --ask-vault-password
+# Chiffrer le vault
+ansible-vault encrypt inventories/staging/group_vars/vault.yml
+ansible-vault encrypt inventories/production/group_vars/vault.yml
+
+# Éditer un vault chiffré
+ansible-vault edit inventories/staging/group_vars/vault.yml
 ```
 
----
+## Déploiement
 
-## Staging Deployment
-
-Deploy the staging environment:
+### Déploiement complet
 
 ```bash
-ansible-playbook \
-  -i inventory/staging/hosts.ini \
-  playbooks/site-staging.yml \
-  --ask-vault-password
+# Staging
+ansible-playbook -i inventories/staging/hosts.yml playbooks/site.yml --ask-vault-pass
+
+# Production
+ansible-playbook -i inventories/production/hosts.yml playbooks/site.yml --ask-vault-pass
 ```
 
----
-
-## Connectivity Test
-
-Verify SSH connectivity:
+### Déploiements ciblés
 
 ```bash
-ansible \
-  -i inventory/production/hosts.ini \
-  production \
-  -m ping \
-  --ask-vault-password
+# Docker uniquement
+ansible-playbook -i inventories/staging/hosts.yml playbooks/deploy-docker-host.yml --ask-vault-pass
+
+# Applications uniquement
+ansible-playbook -i inventories/staging/hosts.yml playbooks/deploy-apps.yml --ask-vault-pass
+
+# Proxy uniquement
+ansible-playbook -i inventories/staging/hosts.yml playbooks/deploy-proxy.yml --ask-vault-pass
+
+# Nextcloud uniquement
+ansible-playbook -i inventories/staging/hosts.yml playbooks/deploy-nextcloud.yml --ask-vault-pass
 ```
 
----
+### Vérification (dry-run)
 
-## Reverse Proxy
-
-Caddy provides:
-
-* HTTPS termination
-* Automatic certificate management
-* Domain routing
-* Access logging
-
-Typical domains:
-
-```text
-lavallee.tech
-facturier.lavallee.tech
-webcam.lavallee.tech
+```bash
+ansible-playbook -i inventories/staging/hosts.yml playbooks/site.yml --ask-vault-pass --check --diff
 ```
 
----
+## Architecture réseau
 
-## Design Principles
+```
+Internet
+    │
+    ▼
+[vm-proxy] ─── Caddy (80/443)
+    │
+    ├── lavallee.tech           → backend_host:18082
+    ├── facturier.lavallee.tech → backend_host:18080  (landing, route /)
+    ├── facturier.lavallee.tech/app/* → backend_host:18081  (app, strip_prefix)
+    ├── docs.lavallee.tech      → backend_host:18084
+    └── nextcloud.lavallee.tech → nextcloud_backend_host:18085
+         │
+         ▼
+    [vm-apps]                   [vm-nextcloud]
+    docker_app containers       Nextcloud + PostgreSQL + Redis
+```
 
-This repository intentionally focuses on:
+## Variables backend
 
-* simplicity
-* reproducibility
-* project isolation
-* infrastructure documentation
-* easy maintenance
+Les backends Caddy utilisent des variables, jamais `localhost` :
 
-Application monitoring is intentionally managed outside of this repository in dedicated monitoring projects.
+| Variable | Description |
+|---|---|
+| `backend_host` | IP/hostname VM apps (défini dans `group_vars/all.yml`) |
+| `nextcloud_backend_host` | IP/hostname VM Nextcloud |
 
----
+## TLS
 
-## License
+| Environnement | Mode | Configuration |
+|---|---|---|
+| Staging | `internal` | Certificats auto-signés Caddy (`tls internal`) |
+| Production | `acme` | Let's Encrypt automatique |
 
-GNU GPL v3

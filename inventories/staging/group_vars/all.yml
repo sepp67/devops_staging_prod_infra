@@ -1,0 +1,54 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Variables communes — Staging
+# Les secrets sont dans vault.yml (chiffré Ansible Vault).
+# ─────────────────────────────────────────────────────────────────────────────
+
+environment_name: staging
+lavallee_domain: lavallee.local
+facturier_domain: facturier.local
+grav_docs_domain: docs.lavallee.local
+
+# Utilisateur de déploiement créé sur chaque VM
+deploy_user: devops
+
+# Répertoire racine des applications sur les VMs
+apps_base_dir: /opt
+
+# ── Caddy ────────────────────────────────────────────────────────────────────
+# En staging : pas de Let's Encrypt, certificats auto-signés Caddy (tls internal)
+caddy_tls_mode: internal   # "internal" | "acme"
+caddy_email: ""            # inutile en staging
+
+# ── Registre de projets ───────────────────────────────────────────────────────
+# Chemin local des fichiers projets (relatif au dépôt)
+projects_vars_dir: "{{ playbook_dir }}/../vars/projects"
+
+# Liste des fichiers projets à charger (sans extension).
+# Ajouter une nouvelle app = ajouter son nom ici + créer vars/projects/<app>.yml
+active_projects:
+  - lavallee-website
+  - facturier-landing
+  - facturier-app
+#  - grav-docs
+
+# ── Backends Caddy ────────────────────────────────────────────────────────────
+# Adresse IP ou hostname de la VM qui héberge les apps.
+# Caddy (sur vm-proxy) forward vers cette adresse + le host_port du projet.
+backend_host: 192.168.1.58
+
+# Adresse IP ou hostname de la VM Nextcloud
+nextcloud_backend_host: 192.168.1.59
+
+# ── Nextcloud ─────────────────────────────────────────────────────────────────
+nextcloud_domain: nextcloud.local
+nextcloud_host_port: 18085
+nextcloud_trusted_proxies: "192.168.1.56"
+nextcloud_overwriteprotocol: http
+
+# Secrets Nextcloud (valeurs définies dans vault.yml)
+nextcloud_admin_user: "{{ vault_nextcloud_admin_user }}"
+nextcloud_admin_password: "{{ vault_nextcloud_admin_password }}"
+nextcloud_db_user: "{{ vault_nextcloud_db_user }}"
+nextcloud_db_password: "{{ vault_nextcloud_db_password }}"
+nextcloud_db_name: nextcloud
