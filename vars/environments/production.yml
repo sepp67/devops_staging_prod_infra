@@ -1,0 +1,6 @@
+---
+# Surcharges optionnelles pour production.
+
+# Exemple : forcer une version stable en production
+# projects_image_overrides:
+#   facturier-app: ghcr.io/sepp67/facturier-app:v1.2.0

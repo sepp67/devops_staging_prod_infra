@@ -1,0 +1,11 @@
+---
+galaxy_info:
+  role_name: caddy_proxy
+  author: sepp67
+  description: Deploy Caddy reverse proxy, generate Caddyfile from project registry
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+dependencies: []

@@ -1,6 +1,0 @@
----
-- name: Restart application stack
-  community.docker.docker_compose_v2:
-    project_src: "{{ project_compose_dir }}"
-    state: restarted
-    timeout: "{{ project_wait_timeout }}"

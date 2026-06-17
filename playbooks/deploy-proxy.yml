@@ -1,0 +1,33 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# deploy-proxy.yml
+#
+# Charge le registre de projets, construit la liste complète des routes
+# (applications + Nextcloud), puis génère et recharge le Caddyfile.
+# ─────────────────────────────────────────────────────────────────────────────
+- name: Deploy Caddy reverse proxy
+  hosts: proxy
+  become: true
+
+  pre_tasks:
+    - name: Load project definitions from vars/projects/
+      include_vars:
+        file: "{{ projects_vars_dir }}/{{ item }}.yml"
+        name: "_proj_{{ item | replace('-', '_') }}"
+      loop: "{{ active_projects }}"
+      tags: always
+
+    - name: Build projects list
+      set_fact:
+        projects: >-
+          {{
+            active_projects
+            | map('replace', '-', '_')
+            | map('regex_replace', '^(.*)$', '_proj_\1')
+            | map('extract', hostvars[inventory_hostname])
+            | list
+          }}
+      tags: always
+
+  roles:
+    - role: caddy_proxy

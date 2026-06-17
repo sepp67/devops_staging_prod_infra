@@ -61,11 +61,11 @@
     group: root
     mode: "0755"
 
-- name: Deploy Caddy systemd override (log path)
+- name: Deploy Caddy systemd override (disable managed log dir)
   copy:
     content: |
       [Service]
-      LogsDirectory=caddy
+      LogsDirectory=
     dest: /etc/systemd/system/caddy.service.d/logs.conf
     owner: root
     group: root

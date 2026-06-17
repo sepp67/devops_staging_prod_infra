@@ -1,68 +1,55 @@
 ---
-- name: Install Docker prerequisite packages
-  ansible.builtin.apt:
-    name: "{{ docker_host_prereq_packages }}"
+# ─────────────────────────────────────────────────────────────────────────────
+# docker_host — Installe Docker Engine + Docker Compose v2 sur Debian 12
+# ─────────────────────────────────────────────────────────────────────────────
+
+- name: Install prerequisites
+  apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
     state: present
     update_cache: true
 
-- name: Ensure Docker keyring directory exists
-  ansible.builtin.file:
-    path: "{{ docker_host_repo_keyring_dir }}"
+- name: Create APT keyring directory
+  file:
+    path: /etc/apt/keyrings
     state: directory
-    owner: root
-    group: root
     mode: "0755"
 
-- name: Download Docker ASCII GPG key
-  ansible.builtin.get_url:
-    url: "{{ docker_host_repo_url }}/gpg"
-    dest: "{{ docker_host_repo_keyring_ascii_file }}"
+- name: Download Docker GPG key
+  get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: "{{ docker_apt_keyring_path }}"
     mode: "0644"
+    force: false
 
-- name: Convert Docker ASCII GPG key to binary keyring
-  ansible.builtin.command:
-    cmd: >-
-      gpg --dearmor
-      --yes
-      --output {{ docker_host_repo_keyring_file }}
-      {{ docker_host_repo_keyring_ascii_file }}
-  changed_when: true
-
-- name: Add Docker apt repository
-  ansible.builtin.apt_repository:
+- name: Add Docker APT repository
+  apt_repository:
     repo: >-
-      deb [arch={{ docker_host_repo_arch }} signed-by={{ docker_host_repo_keyring_file }}]
-      {{ docker_host_repo_url }}
-      {{ docker_host_repo_release }} stable
-    state: present
+      deb [arch={{ ansible_architecture | replace('x86_64', 'amd64') }}
+      signed-by={{ docker_apt_keyring_path }}]
+      https://download.docker.com/linux/debian
+      {{ ansible_distribution_release }} stable
     filename: docker
+    state: present
 
 - name: Install Docker packages
-  ansible.builtin.apt:
-    name: "{{ docker_host_packages }}"
+  apt:
+    name: "{{ docker_packages }}"
     state: present
     update_cache: true
 
-- name: Ensure Docker service is enabled and started
-  ansible.builtin.systemd:
+- name: Enable and start Docker service
+  systemd:
     name: docker
-    enabled: "{{ docker_host_service_enabled }}"
-    state: "{{ docker_host_service_state }}"
+    enabled: true
+    state: started
 
-- name: Add users to docker group
-  ansible.builtin.user:
-    name: "{{ item }}"
+- name: Add deploy user to docker group
+  user:
+    name: "{{ deploy_user }}"
     groups: docker
     append: true
-  loop: "{{ docker_host_users }}"
-  when:
-    - docker_host_users is defined
-    - docker_host_users | length > 0
-
-- name: Ensure application root directory exists
-  ansible.builtin.file:
-    path: /opt/apps
-    state: directory
-    owner: root
-    group: root
-    mode: "0755"

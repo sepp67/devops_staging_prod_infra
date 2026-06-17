@@ -1,0 +1,7 @@
+---
+# Installe Docker Engine + Docker Compose v2 sur les VMs applicatives
+- name: Provision Docker host
+  hosts: apps:nextcloud
+  become: true
+  roles:
+    - role: docker_host

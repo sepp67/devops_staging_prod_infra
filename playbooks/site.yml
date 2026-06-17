@@ -1,0 +1,12 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# site.yml — Déploiement complet de l'infrastructure
+#
+# Usage :
+#   ansible-playbook -i inventories/staging/hosts.yml playbooks/site.yml --ask-vault-pass
+#   ansible-playbook -i inventories/production/hosts.yml playbooks/site.yml --ask-vault-pass
+# ─────────────────────────────────────────────────────────────────────────────
+- import_playbook: deploy-docker-host.yml
+- import_playbook: deploy-apps.yml
+- import_playbook: deploy-nextcloud.yml
+- import_playbook: deploy-proxy.yml

@@ -1,0 +1,10 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# VAULT — Production
+# Ce fichier doit être chiffré : ansible-vault encrypt inventories/production/group_vars/vault.yml
+# ─────────────────────────────────────────────────────────────────────────────
+
+vault_nextcloud_admin_user: admin
+vault_nextcloud_admin_password: CHANGE_ME_prod
+vault_nextcloud_db_user: nextcloud
+vault_nextcloud_db_password: CHANGE_ME_prod_db

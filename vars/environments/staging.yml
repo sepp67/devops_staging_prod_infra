@@ -1,0 +1,8 @@
+---
+# Surcharges optionnelles pour staging.
+# La plupart des variables d'env sont déjà dans inventories/staging/group_vars/all.yml
+# Ce fichier peut contenir des overrides image:tag spécifiques au staging.
+
+# Exemple : épingler une image de test
+# projects_image_overrides:
+#   facturier-app: ghcr.io/sepp67/facturier-app:dev

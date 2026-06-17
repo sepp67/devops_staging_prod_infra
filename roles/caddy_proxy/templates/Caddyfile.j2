@@ -1,5 +1,68 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Caddyfile — Généré par Ansible
+# Environnement : {{ environment_name }}
+# Ne pas éditer manuellement.
+# ─────────────────────────────────────────────────────────────────────────────
+
 {
-  email {{ caddy_email }}
+{% if caddy_tls_mode == "acme" %}
+    email {{ caddy_email }}
+{% endif %}
 }
 
-import /etc/caddy/sites-enabled/*.caddy
+# ─────────────────────────────────────────────────────────────────────────────
+# Projets applicatifs (générés depuis vars/projects/)
+# ─────────────────────────────────────────────────────────────────────────────
+
+{% set ns = namespace(domains_seen=[]) %}
+{% for project in projects %}
+{#  Regroupe par domaine : on n'ouvre un bloc de domaine qu'une seule fois  #}
+{% if project.domain not in ns.domains_seen %}
+{% set _ = ns.domains_seen.append(project.domain) %}
+
+{{ project.domain }} {
+{% if caddy_tls_mode == "internal" %}
+    tls internal
+{% endif %}
+
+{% for p in projects if p.domain == project.domain %}
+{% if p.route_path is defined and p.route_path != "/" %}
+    # Route : {{ p.route_path }} → {{ p.project_name }}
+    handle {{ p.route_path }} {
+{% if p.strip_prefix is defined and p.strip_prefix %}
+        uri strip_prefix {{ p.route_path | regex_replace('/\*$', '') }}
+{% endif %}
+        reverse_proxy {{ backend_host }}:{{ p.host_port }}
+    }
+{% else %}
+    # Route : / → {{ p.project_name }}
+    handle /* {
+        reverse_proxy {{ backend_host }}:{{ p.host_port }}
+    }
+{% endif %}
+{% endfor %}
+}
+{% endif %}
+{% endfor %}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Nextcloud (déployé par nextcloud_stack, routé ici)
+# ─────────────────────────────────────────────────────────────────────────────
+{{ nextcloud_domain }} {
+{% if caddy_tls_mode == "internal" %}
+    tls internal
+{% endif %}
+
+    # Headers requis par Nextcloud derrière un reverse proxy
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "no-referrer"
+    }
+
+    reverse_proxy {{ nextcloud_backend_host }}:{{ nextcloud_host_port }} {
+        header_up X-Real-IP {remote_host}
+    }
+}
