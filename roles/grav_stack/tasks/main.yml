@@ -1,7 +1,62 @@
 ---
-# grav_stack — À implémenter
-# Déploie Grav CMS avec volume persistant.
-# Voir : https://github.com/sepp67/ansible-role-grav
-- name: Grav_stack placeholder
-  ansible.builtin.debug:
-    msg: "grav_stack not yet implemented for {{ project.project_name }}"
+# ─────────────────────────────────────────────────────────────────────────────
+# grav_stack — Déploie Grav CMS (image grav-docs) via Docker Compose
+#
+# Reçoit la variable `project` avec les champs :
+#   project_name, image, container_port, host_port,
+#   healthcheck_url, docker_environment (dict, peut contenir
+#   GRAV_ADMIN_USER/PASSWORD/EMAIL), volumes (list)
+#
+# Le bootstrap admin Grav (création d'un compte au premier démarrage) est
+# géré par l'image grav-docs elle-même (docker/bootstrap-admin.sh) : ce rôle
+# se limite à injecter les variables d'environnement nécessaires, sans
+# jamais les logger.
+# ─────────────────────────────────────────────────────────────────────────────
+
+- name: Create app directory for {{ project.project_name }}
+  ansible.builtin.file:
+    path: "{{ apps_base_dir }}/{{ project.project_name }}"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "0750"
+
+- name: Create persistent data directories for {{ project.project_name }}
+  ansible.builtin.file:
+    path: "{{ item.split(':')[0] }}"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "0750"
+  loop: "{{ project.volumes | default([]) }}"
+  loop_control:
+    label: "{{ item.split(':')[0] }}"
+
+- name: Deploy docker-compose.yml for {{ project.project_name }}
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ apps_base_dir }}/{{ project.project_name }}/docker-compose.yml"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "0640"
+  no_log: true
+  notify: Restart grav
+
+- name: Pull latest image for {{ project.project_name }}
+  community.docker.docker_compose_v2:
+    project_src: "{{ apps_base_dir }}/{{ project.project_name }}"
+    pull: always
+    state: present
+  become: true
+  become_user: "{{ deploy_user }}"
+  no_log: true
+
+- name: Wait for healthcheck for {{ project.project_name }}
+  ansible.builtin.uri:
+    url: "{{ project.healthcheck_url }}"
+    status_code: 200
+    return_content: false
+  register: healthcheck
+  until: healthcheck.status == 200
+  retries: "{{ healthcheck_retries }}"
+  delay: "{{ healthcheck_delay }}"

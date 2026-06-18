@@ -3,15 +3,24 @@
 # Projet : grav-docs
 # Documentation interne Grav — volume persistant requis
 # project_type: grav_stack → déployé par le rôle grav_stack, pas docker_app
+#
+# Bootstrap admin optionnel : grav_admin_user/password/email sont définis
+# dans inventories/<env>/group_vars/all.yml (eux-mêmes référençant le Vault).
+# Si l'une des trois variables est absente ou vide, l'image grav-docs
+# n'effectue aucun bootstrap (comportement par défaut, voir docker/bootstrap-admin.sh
+# dans le dépôt grav-docs).
 # ─────────────────────────────────────────────────────────────────────────────
 project_name: grav-docs
 project_type: grav_stack
-image: ghcr.io/sepp67/grav:latest
+image: ghcr.io/sepp67/grav-docs:latest
 container_port: 80
 host_port: 18084
-domain: docs.lavallee.tech
+domain: "{{ grav_docs_domain }}"
 route_path: /
 healthcheck_url: "http://{{ backend_host }}:18084/"
-docker_environment: {}
+docker_environment:
+  GRAV_ADMIN_USER: "{{ grav_admin_user | default('') }}"
+  GRAV_ADMIN_PASSWORD: "{{ grav_admin_password | default('') }}"
+  GRAV_ADMIN_EMAIL: "{{ grav_admin_email | default('') }}"
 volumes:
   - /opt/grav-docs/data:/var/www/html/user

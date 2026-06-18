@@ -1,0 +1,28 @@
+---
+# Généré par Ansible — ne pas éditer manuellement
+# Projet : {{ project.project_name }} | Env : {{ environment_name }}
+
+services:
+  {{ project.project_name }}:
+    image: "{{ project.image }}"
+    restart: unless-stopped
+    ports:
+      - "{{ docker_bind_address }}:{{ project.host_port }}:{{ project.container_port }}"
+{% if project.docker_environment %}
+    environment:
+{% for key, value in project.docker_environment.items() %}
+      {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+{% if project.volumes %}
+    volumes:
+{% for vol in project.volumes %}
+      - "{{ vol }}"
+{% endfor %}
+{% endif %}
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:{{ project.container_port }}{{ project.healthcheck_path | default('/') }}"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

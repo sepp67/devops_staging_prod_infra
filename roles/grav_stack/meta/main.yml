@@ -5,4 +5,9 @@ galaxy_info:
   description: Deploy Grav CMS with persistent volume
   license: MIT
   min_ansible_version: "2.14"
-dependencies: []
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+dependencies:
+  - role: docker_host

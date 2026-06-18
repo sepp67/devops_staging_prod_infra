@@ -1,0 +1,10 @@
+---
+# project est passé en variable lors de l'include_role dans deploy-apps.yml
+# Ces valeurs servent de documentation / fallback.
+project: {}
+healthcheck_retries: 5
+healthcheck_delay: 5
+
+# Adresse d'écoute des ports publiés par Docker.
+# 0.0.0.0 est nécessaire car le reverse proxy tourne sur une VM séparée.
+docker_bind_address: "0.0.0.0"

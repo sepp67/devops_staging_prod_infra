@@ -41,3 +41,14 @@ nextcloud_admin_password: "{{ vault_nextcloud_admin_password }}"
 nextcloud_db_user: "{{ vault_nextcloud_db_user }}"
 nextcloud_db_password: "{{ vault_nextcloud_db_password }}"
 nextcloud_db_name: nextcloud
+
+# ── Grav (grav-docs) ──────────────────────────────────────────────────────────
+# Bootstrap admin optionnel (voir vars/projects/grav-docs.yml et le rôle
+# grav_stack). Ces variables sont préparées par cohérence avec staging, mais
+# ne sont PAS encore activées en production : les clés vault_grav_admin_*
+# correspondantes n'ont pas encore été ajoutées à vault.yml. Tant qu'elles
+# sont absentes, le bootstrap admin de l'image grav-docs reste désactivé
+# (les trois variables GRAV_ADMIN_* seront vides côté conteneur).
+grav_admin_user: "{{ vault_grav_admin_user | default('') }}"
+grav_admin_password: "{{ vault_grav_admin_password | default('') }}"
+grav_admin_email: "{{ vault_grav_admin_email | default('') }}"
