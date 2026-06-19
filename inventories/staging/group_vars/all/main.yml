@@ -31,12 +31,17 @@ projects_vars_dir: "{{ playbook_dir }}/../vars/projects"
 # vars/projects/nextcloud.yml et README.md, section "Services externes").
 # Il n'est JAMAIS déployé par deploy-apps.yml — il sert uniquement à
 # déclarer le routage Caddy vers la VM Nextcloud, administrée manuellement.
+#
+# Note sur "webcam" : project_type docker_app classique, mais déployé sur
+# une VM dédiée (groupe [webcam]), pas sur vm-apps-staging — voir
+# webcam_backend_host ci-dessous et README.md, section "Services à VM dédiée".
 active_projects:
   - lavallee-website
   - facturier-landing
   - facturier-app
   - grav-docs
   - nextcloud
+  - webcam
 
 # ── Backends Caddy ────────────────────────────────────────────────────────────
 # Adresse IP ou hostname de la VM qui héberge les apps.
@@ -62,3 +67,12 @@ nextcloud_host_port: 8080
 grav_admin_user: "{{ vault_grav_admin_user }}"
 grav_admin_password: "{{ vault_grav_admin_password }}"
 grav_admin_email: "{{ vault_grav_admin_email }}"
+
+# ── Webcam (VM dédiée, voir README.md) ────────────────────────────────────────
+# Déployée par docker_app comme n'importe quelle app simple, mais sur sa
+# propre VM (groupe [webcam]) plutôt que vm-apps-staging, car cette VM a une
+# seconde interface réseau dédiée à la caméra physique (192.168.8.0/24).
+# webcam_backend_host est l'IP LAN de cette VM (celle que Caddy doit joindre),
+# distincte du réseau caméra.
+webcam_domain: webcam.lavallee.local
+webcam_backend_host: 192.168.1.15

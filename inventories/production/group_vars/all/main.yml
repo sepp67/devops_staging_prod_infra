@@ -52,3 +52,16 @@ nextcloud_host_port: 8080
 grav_admin_user: "{{ vault_grav_admin_user | default('') }}"
 grav_admin_password: "{{ vault_grav_admin_password | default('') }}"
 grav_admin_email: "{{ vault_grav_admin_email | default('') }}"
+
+# ── Webcam (VM dédiée, voir README.md) ────────────────────────────────────────
+# Aucune VM caméra de production n'existe à ce jour (inventories/production/
+# hosts.yml déclare le groupe [webcam] vide, sans IP placeholder). "webcam"
+# n'est donc pas ajouté à active_projects ci-dessus, et webcam_backend_host
+# n'est PAS défini ici : une variable sans VM réelle pour la consommer
+# créerait la même confusion qu'une IP placeholder.
+#
+# Le jour où une caméra de production est installée :
+#   1. Ajouter le host réel dans inventories/production/hosts.yml (groupe webcam)
+#   2. Définir webcam_domain et webcam_backend_host ici
+#   3. Ajouter "webcam" à active_projects
+webcam_domain: webcam.lavallee.tech

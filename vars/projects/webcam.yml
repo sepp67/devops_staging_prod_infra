@@ -1,0 +1,43 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Projet : webcam
+# Flux webcam RTSP→HLS + galerie de snapshots (lever/coucher du soleil)
+# project_type: docker_app — pas de rôle dédié, voir README.md pour la
+# justification (app simple, complexité réseau gérée au niveau VM, pas rôle)
+#
+# VM dédiée (vm-camera-claude), distincte du groupe [apps] générique, car
+# contrainte réseau spécifique : la VM a une seconde interface sur le réseau
+# caméra (192.168.8.0/24) pour atteindre la caméra physique en RTSP. Caddy
+# route vers webcam_backend_host (IP LAN de cette VM), pas vers le backend_host
+# global de vm-apps-staging. Voir README.md, section "Services à VM dédiée".
+#
+# Volumes — analyse du code source (entrypoint.sh, snapshot_runner.py) :
+#   - /var/www/html/gallery : PERSISTANT. snapshot_runner.py y écrit des
+#     .jpg horodatés et applique une rétention de 31 jours basée sur leur
+#     date de modification (cleanup()). Sans volume, l'historique serait
+#     perdu à chaque redéploiement.
+#   - /var/www/html/stream : PAS de volume. Tampon HLS glissant de ~8
+#     secondes (hls_time 2 × hls_list_size 4), purgé par ffmpeg lui-même
+#     (-hls_flags delete_segments) ET réinitialisé explicitement par
+#     entrypoint.sh (rm -f *.ts *.m3u8) à chaque démarrage. Aucune donnée
+#     à préserver.
+# ─────────────────────────────────────────────────────────────────────────────
+project_name: webcam
+project_type: docker_app
+image: ghcr.io/sepp67/webcam-stream:latest
+container_port: 80
+host_port: 18086
+domain: "{{ webcam_domain }}"
+route_path: /
+healthcheck_url: "http://{{ webcam_backend_host }}:18086/"
+backend_host: "{{ webcam_backend_host }}"
+
+docker_environment:
+  RTSP_URL: "{{ vault_webcam_rtsp_url }}"
+  WEBCAM_LATITUDE: "48.4636"
+  WEBCAM_LONGITUDE: "7.4811"
+  WEBCAM_TIMEZONE: "Europe/Paris"
+  SNAPSHOT_RETENTION_DAYS: "31"
+
+volumes:
+  - /opt/webcam/gallery:/var/www/html/gallery
