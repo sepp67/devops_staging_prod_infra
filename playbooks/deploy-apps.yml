@@ -49,11 +49,17 @@
           }}
       tags: always
 
-    - name: Restrict projects list to this host's target_group
+    - name: Restrict projects list to deployable projects for this host
       ansible.builtin.set_fact:
-        projects: "{{ projects | selectattr('target_group', 'in', group_names) | list }}"
-      tags: always
-
+        projects: >-
+          {{
+            projects
+            | selectattr('project_type', 'in', ['docker_app', 'grav_stack'])
+            | selectattr('target_group', 'defined')
+            | selectattr('target_group', 'in', group_names)
+            | list
+          }}
+  tags: always
   tasks:
     - name: Deploy docker_app projects
       ansible.builtin.include_role:

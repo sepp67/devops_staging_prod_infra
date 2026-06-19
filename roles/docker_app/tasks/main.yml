@@ -22,7 +22,6 @@
     owner: "{{ deploy_user }}"
     group: "{{ deploy_user }}"
     mode: "0640"
-  notify: Restart app
 
 - name: Pull latest image for {{ project.project_name }}
   community.docker.docker_compose_v2:

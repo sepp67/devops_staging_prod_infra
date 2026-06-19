@@ -30,7 +30,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 project_name: webcam
 project_type: docker_app
-image: ghcr.io/sepp67/webcam-stream:latest
+image: ghcr.io/sepp67/ansible-role-webcam-stream:latest
 container_port: 80
 host_port: 18086
 domain: "{{ webcam_domain }}"
