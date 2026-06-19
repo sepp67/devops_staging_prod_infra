@@ -51,7 +51,7 @@ nextcloud_backend_host: 192.168.1.59
 # qu'au routage Caddy (vars/projects/nextcloud.yml), pas à un déploiement.
 # Toute variable de secret (admin, DB) a été retirée : ces secrets vivent
 # uniquement dans le docker-compose.yml manuel sur vm-nextcloud-staging.
-nextcloud_domain: nextcloud.local
+nextcloud_domain: cloud.lavallee.local
 nextcloud_host_port: 8080
 
 # ── Grav (grav-docs) ──────────────────────────────────────────────────────────
