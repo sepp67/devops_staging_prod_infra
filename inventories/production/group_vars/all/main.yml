@@ -20,27 +20,27 @@ caddy_email: admin@lavallee.tech
 # ── Registre de projets ───────────────────────────────────────────────────────
 projects_vars_dir: "{{ playbook_dir }}/../vars/projects"
 
+# Note sur "nextcloud" : voir le commentaire équivalent dans
+# inventories/staging/group_vars/all/main.yml — project_type: external_service,
+# jamais déployé par deploy-apps.yml.
 active_projects:
   - lavallee-website
   - facturier-landing
   - facturier-app
   - grav-docs
+  - nextcloud
 
 # ── Backends Caddy ────────────────────────────────────────────────────────────
 backend_host: 10.20.1.11
+
+# Adresse IP ou hostname de la VM Nextcloud (service externe, voir ci-dessus).
 nextcloud_backend_host: 10.20.1.12
 
-# ── Nextcloud ─────────────────────────────────────────────────────────────────
+# ── Nextcloud (service externe — voir README.md) ──────────────────────────────
+# Nextcloud n'est PAS déployé par ce dépôt. Ces deux variables ne servent
+# qu'au routage Caddy (vars/projects/nextcloud.yml), pas à un déploiement.
 nextcloud_domain: nextcloud.lavallee.tech
-nextcloud_host_port: 18085
-nextcloud_trusted_proxies: "10.20.1.10"
-nextcloud_overwriteprotocol: https
-
-nextcloud_admin_user: "{{ vault_nextcloud_admin_user }}"
-nextcloud_admin_password: "{{ vault_nextcloud_admin_password }}"
-nextcloud_db_user: "{{ vault_nextcloud_db_user }}"
-nextcloud_db_password: "{{ vault_nextcloud_db_password }}"
-nextcloud_db_name: nextcloud
+nextcloud_host_port: 8080
 
 # ── Grav (grav-docs) ──────────────────────────────────────────────────────────
 # Bootstrap admin optionnel (voir vars/projects/grav-docs.yml et le rôle

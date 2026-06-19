@@ -2,8 +2,13 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # deploy-proxy.yml
 #
-# Charge le registre de projets, construit la liste complète des routes
-# (applications + Nextcloud), puis génère et recharge le Caddyfile.
+# Charge le registre de projets (vars/projects/*.yml), construit la liste
+# complète des routes, puis génère et recharge le Caddyfile.
+#
+# Tous les types de projets sont routés ici, y compris project_type:
+# external_service (ex: nextcloud) — caddy_proxy n'a aucune notion de qui
+# déploie réellement le service derrière une route, il route uniquement
+# vers project.backend_host / project.host_port.
 # ─────────────────────────────────────────────────────────────────────────────
 - name: Deploy Caddy reverse proxy
   hosts: proxy

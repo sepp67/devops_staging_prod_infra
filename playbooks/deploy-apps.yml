@@ -7,8 +7,14 @@
 #
 # Pour ajouter une nouvelle application :
 #   1. Créer vars/projects/<app>.yml
-#   2. Ajouter le nom dans active_projects (inventories/*/group_vars/all.yml)
+#   2. Ajouter le nom dans active_projects (inventories/*/group_vars/all/main.yml)
 #   → Aucun rôle à modifier.
+#
+# IMPORTANT : project_type: external_service n'est JAMAIS inclus dans les
+# boucles ci-dessous. Ces projets (ex: nextcloud) sont routés par caddy_proxy
+# uniquement (voir playbooks/deploy-proxy.yml) — leur cycle de vie applicatif
+# est géré manuellement, hors de ce dépôt. Voir README.md, section
+# "Services externes", pour la justification complète.
 # ─────────────────────────────────────────────────────────────────────────────
 - name: Load project registry and deploy applications
   hosts: apps

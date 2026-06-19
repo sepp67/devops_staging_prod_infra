@@ -32,7 +32,7 @@
 {% if p.strip_prefix is defined and p.strip_prefix %}
         uri strip_prefix {{ p.route_path | regex_replace('/\*$', '') }}
 {% endif %}
-        reverse_proxy {{ backend_host }}:{{ p.host_port }}
+        reverse_proxy {{ p.backend_host | default(backend_host) }}:{{ p.host_port }}
     }
 {% for route in p.extra_routes | default([]) %}
     # Route : {{ route.route_path }} → {{ p.project_name }}
@@ -40,38 +40,16 @@
 {% if route.strip_prefix is defined and route.strip_prefix %}
         uri strip_prefix {{ route.route_path | regex_replace('/\*$', '') }}
 {% endif %}
-        reverse_proxy {{ backend_host }}:{{ p.host_port }}
+        reverse_proxy {{ p.backend_host | default(backend_host) }}:{{ p.host_port }}
     }
 {% endfor %}
 {% else %}
     # Route : / → {{ p.project_name }}
     handle /* {
-        reverse_proxy {{ backend_host }}:{{ p.host_port }}
+        reverse_proxy {{ p.backend_host | default(backend_host) }}:{{ p.host_port }}
     }
 {% endif %}
 {% endfor %}
 }
 {% endif %}
 {% endfor %}
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Nextcloud (déployé par nextcloud_stack, routé ici)
-# ─────────────────────────────────────────────────────────────────────────────
-{{ nextcloud_domain }} {
-{% if caddy_tls_mode == "internal" %}
-    tls internal
-{% endif %}
-
-    # Headers requis par Nextcloud derrière un reverse proxy
-    header {
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "SAMEORIGIN"
-        X-XSS-Protection "1; mode=block"
-        Referrer-Policy "no-referrer"
-    }
-
-    reverse_proxy {{ nextcloud_backend_host }}:{{ nextcloud_host_port }} {
-        header_up X-Real-IP {remote_host}
-    }
-}

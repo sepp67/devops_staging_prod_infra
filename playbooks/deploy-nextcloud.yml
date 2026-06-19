@@ -1,8 +1,0 @@
----
-# Déploie la stack Nextcloud (Nextcloud + PostgreSQL + Redis)
-# Le rôle nextcloud_stack est distinct du rôle générique docker_app.
-- name: Deploy Nextcloud stack
-  hosts: nextcloud
-  become: true
-  roles:
-    - role: nextcloud_stack

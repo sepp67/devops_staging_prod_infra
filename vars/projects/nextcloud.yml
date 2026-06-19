@@ -1,0 +1,29 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Projet : nextcloud
+# Service EXTERNE — non déployé par ce dépôt.
+#
+# Nextcloud, PostgreSQL et Redis sont installés et administrés manuellement
+# sur vm-nextcloud-staging / vm-nextcloud-prod, via un docker-compose.yml et
+# des secrets qui vivent UNIQUEMENT sur cette VM — jamais dans ce dépôt, ni
+# dans Ansible Vault. Ce fichier ne sert qu'à déclarer le routage Caddy.
+#
+# project_type: external_service n'est JAMAIS inclus dans les boucles de
+# déploiement de playbooks/deploy-apps.yml — voir le commentaire à cet
+# endroit, et README.md, section "Services externes", pour la justification
+# complète de cette décision d'architecture.
+#
+# Pourquoi pas un pattern "stateful_service" dédié ?
+# Cette option a été explorée et explicitement écartée : introduire un
+# nouveau pattern d'exploitation (génération de compose/.env, bootstrap
+# conditionnel, garde anti-relance) pour un seul service ne se justifiait
+# pas. Si plusieurs services stateful similaires (Keycloak, Gitea, ...)
+# rejoignent l'infrastructure, ce pattern redeviendra pertinent — voir
+# README.md, section "Services externes", pour le détail de cette décision.
+# ─────────────────────────────────────────────────────────────────────────────
+project_name: nextcloud
+project_type: external_service
+domain: "{{ nextcloud_domain }}"
+route_path: /
+host_port: "{{ nextcloud_host_port }}"
+backend_host: "{{ nextcloud_backend_host }}"

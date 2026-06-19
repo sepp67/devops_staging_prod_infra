@@ -1,10 +1,13 @@
 ---
 # ─────────────────────────────────────────────────────────────────────────────
 # VAULT — Production
-# Ce fichier doit être chiffré : ansible-vault encrypt inventories/production/group_vars/vault.yml
+# Ce fichier doit être chiffré : ansible-vault encrypt inventories/production/group_vars/all/vault.yml
+#
+# Aucun secret Nextcloud ici : Nextcloud est un service externe
+# (project_type: external_service), non déployé par ce dépôt. Ses secrets
+# vivent uniquement dans le docker-compose.yml manuel de vm-nextcloud-prod.
+# Voir README.md, section "Services externes".
 # ─────────────────────────────────────────────────────────────────────────────
 
-vault_nextcloud_admin_user: admin
-vault_nextcloud_admin_password: CHANGE_ME_prod
-vault_nextcloud_db_user: nextcloud
-vault_nextcloud_db_password: CHANGE_ME_prod_db
+# (Aucune clé pour l'instant — les clés vault_grav_admin_* n'ont pas encore
+# été ajoutées en production, voir inventories/production/group_vars/all/main.yml)

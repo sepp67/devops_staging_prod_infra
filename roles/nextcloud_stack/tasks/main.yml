@@ -1,7 +1,0 @@
----
-# nextcloud_stack — À implémenter
-# Déploie Nextcloud + PostgreSQL + Redis avec volumes persistants.
-# Ce rôle est distinct de docker_app : ne pas le remplacer par docker_app.
-- name: Nextcloud_stack placeholder
-  ansible.builtin.debug:
-    msg: "nextcloud_stack not yet implemented"
