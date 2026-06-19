@@ -5,6 +5,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 project_name: lavallee-website
 project_type: docker_app
+target_group: apps
 image: ghcr.io/sepp67/ansible-role-website-lavallee:latest
 container_port: 80
 host_port: 18082

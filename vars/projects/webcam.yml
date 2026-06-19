@@ -11,6 +11,12 @@
 # route vers webcam_backend_host (IP LAN de cette VM), pas vers le backend_host
 # global de vm-apps-staging. Voir README.md, section "Services à VM dédiée".
 #
+# target_group indique à deploy-apps.yml SUR QUEL groupe d'inventaire ce
+# projet doit être déployé (pas seulement routé). Sans ce champ, deploy-apps.yml
+# déploierait ce projet sur tous les hôtes visés par le playbook, y compris
+# vm-apps-staging — ce qui échoue (image jamais buildée pour cette VM, ou
+# tentative de pull sur le mauvais réseau).
+#
 # Volumes — analyse du code source (entrypoint.sh, snapshot_runner.py) :
 #   - /var/www/html/gallery : PERSISTANT. snapshot_runner.py y écrit des
 #     .jpg horodatés et applique une rétention de 31 jours basée sur leur
@@ -31,6 +37,7 @@ domain: "{{ webcam_domain }}"
 route_path: /
 healthcheck_url: "http://{{ webcam_backend_host }}:18086/"
 backend_host: "{{ webcam_backend_host }}"
+target_group: webcam
 
 docker_environment:
   RTSP_URL: "{{ vault_webcam_rtsp_url }}"

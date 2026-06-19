@@ -12,6 +12,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 project_name: grav-docs
 project_type: grav_stack
+target_group: apps
 image: ghcr.io/sepp67/grav-docs:latest
 container_port: 80
 host_port: 18084

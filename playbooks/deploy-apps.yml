@@ -8,16 +8,25 @@
 # Pour ajouter une nouvelle application :
 #   1. Créer vars/projects/<app>.yml
 #   2. Ajouter le nom dans active_projects (inventories/*/group_vars/all/main.yml)
+#   3. Définir target_group: <groupe d'inventaire qui doit héberger ce projet>
+#      ("apps" pour la VM applicative générique, ou un groupe dédié comme
+#      "webcam" pour un projet sur sa propre VM)
 #   → Aucun rôle à modifier.
 #
-# IMPORTANT : project_type: external_service n'est JAMAIS inclus dans les
-# boucles ci-dessous. Ces projets (ex: nextcloud) sont routés par caddy_proxy
+# IMPORTANT : ce playbook cible apps:webcam (et tout autre groupe dédié
+# ajouté à l'avenir), PAS seulement apps. Chaque hôte ne déploie que les
+# projets dont target_group correspond à l'un de ses propres groupes
+# (group_names) — sans ce filtre, un projet à VM dédiée (ex: webcam) serait
+# aussi déployé par erreur sur vm-apps-staging.
+#
+# project_type: external_service n'est JAMAIS inclus dans les boucles
+# ci-dessous. Ces projets (ex: nextcloud) sont routés par caddy_proxy
 # uniquement (voir playbooks/deploy-proxy.yml) — leur cycle de vie applicatif
 # est géré manuellement, hors de ce dépôt. Voir README.md, section
 # "Services externes", pour la justification complète.
 # ─────────────────────────────────────────────────────────────────────────────
 - name: Load project registry and deploy applications
-  hosts: apps
+  hosts: apps:webcam
   become: true
 
   pre_tasks:
@@ -38,6 +47,11 @@
             | map('extract', hostvars[inventory_hostname])
             | list
           }}
+      tags: always
+
+    - name: Restrict projects list to this host's target_group
+      ansible.builtin.set_fact:
+        projects: "{{ projects | selectattr('target_group', 'in', group_names) | list }}"
       tags: always
 
   tasks:
