@@ -1,7 +1,8 @@
 ---
 # ─────────────────────────────────────────────────────────────────────────────
 # VAULT — Production
-# Ce fichier doit être chiffré : ansible-vault encrypt inventories/production/group_vars/all/vault.yml
+# Ce fichier DOIT être chiffré avant tout déploiement réel :
+#   ansible-vault encrypt inventories/production/group_vars/all/vault.yml
 #
 # Aucun secret Nextcloud ici : Nextcloud est un service externe
 # (project_type: external_service), non déployé par ce dépôt. Ses secrets
@@ -9,5 +10,10 @@
 # Voir README.md, section "Services externes".
 # ─────────────────────────────────────────────────────────────────────────────
 
-# (Aucune clé pour l'instant — les clés vault_grav_admin_* n'ont pas encore
-# été ajoutées en production, voir inventories/production/group_vars/all/main.yml)
+# Bootstrap admin Grav (voir group_vars/all/main.yml)
+vault_grav_admin_user: admin
+vault_grav_admin_password: "CHANGE_ME_avant_chiffrement"
+vault_grav_admin_email: admin@lavallee.tech
+
+# Flux RTSP webcam (voir group_vars/all/main.yml et vars/projects/webcam.yml)
+vault_webcam_rtsp_url: "rtsp://CHANGE_ME_user:CHANGE_ME_password@CHANGE_ME_ip:554/CHANGE_ME_path"

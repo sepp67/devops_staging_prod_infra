@@ -23,18 +23,26 @@ projects_vars_dir: "{{ playbook_dir }}/../vars/projects"
 # Note sur "nextcloud" : voir le commentaire équivalent dans
 # inventories/staging/group_vars/all/main.yml — project_type: external_service,
 # jamais déployé par deploy-apps.yml.
+#
+# Note sur "webcam" : project_type docker_app classique, mais déployé sur
+# une VM dédiée (groupe [webcam]), pas sur vm-apps-prod — voir
+# webcam_backend_host ci-dessous et README.md, section "Services à VM dédiée".
 active_projects:
   - lavallee-website
   - facturier-landing
   - facturier-app
   - grav-docs
   - nextcloud
+  - webcam
 
 # ── Backends Caddy ────────────────────────────────────────────────────────────
-backend_host: 10.20.1.11
+# TODO : remplacer par l'IP réelle de vm-apps-prod (doit correspondre à
+# inventories/production/hosts.yml).
+backend_host: TODO_SET_REAL_IP
 
 # Adresse IP ou hostname de la VM Nextcloud (service externe, voir ci-dessus).
-nextcloud_backend_host: 10.20.1.12
+# TODO : remplacer par l'IP réelle de vm-nextcloud-prod.
+nextcloud_backend_host: TODO_SET_REAL_IP
 
 # ── Nextcloud (service externe — voir README.md) ──────────────────────────────
 # Nextcloud n'est PAS déployé par ce dépôt. Ces deux variables ne servent
@@ -44,24 +52,23 @@ nextcloud_host_port: 8080
 
 # ── Grav (grav-docs) ──────────────────────────────────────────────────────────
 # Bootstrap admin optionnel (voir vars/projects/grav-docs.yml et le rôle
-# grav_stack). Ces variables sont préparées par cohérence avec staging, mais
-# ne sont PAS encore activées en production : les clés vault_grav_admin_*
-# correspondantes n'ont pas encore été ajoutées à vault.yml. Tant qu'elles
-# sont absentes, le bootstrap admin de l'image grav-docs reste désactivé
-# (les trois variables GRAV_ADMIN_* seront vides côté conteneur).
-grav_admin_user: "{{ vault_grav_admin_user | default('') }}"
-grav_admin_password: "{{ vault_grav_admin_password | default('') }}"
-grav_admin_email: "{{ vault_grav_admin_email | default('') }}"
+# grav_stack). Activé en production, comme en staging : un compte admin est
+# créé automatiquement au premier déploiement si aucun compte du même nom
+# n'existe déjà. Secrets définis dans vault.yml
+# (ansible-vault edit inventories/production/group_vars/all/vault.yml)
+grav_admin_user: "{{ vault_grav_admin_user }}"
+grav_admin_password: "{{ vault_grav_admin_password }}"
+grav_admin_email: "{{ vault_grav_admin_email }}"
 
 # ── Webcam (VM dédiée, voir README.md) ────────────────────────────────────────
-# Aucune VM caméra de production n'existe à ce jour (inventories/production/
-# hosts.yml déclare le groupe [webcam] vide, sans IP placeholder). "webcam"
-# n'est donc pas ajouté à active_projects ci-dessus, et webcam_backend_host
-# n'est PAS défini ici : une variable sans VM réelle pour la consommer
-# créerait la même confusion qu'une IP placeholder.
-#
-# Le jour où une caméra de production est installée :
-#   1. Ajouter le host réel dans inventories/production/hosts.yml (groupe webcam)
-#   2. Définir webcam_domain et webcam_backend_host ici
-#   3. Ajouter "webcam" à active_projects
+# Activé en production, comme en staging. Déployée par docker_app comme
+# n'importe quelle app simple, mais sur sa propre VM (groupe [webcam])
+# plutôt que vm-apps-prod, car cette VM a une seconde interface réseau
+# dédiée à la caméra physique. webcam_backend_host est l'IP LAN de cette
+# VM (celle que Caddy doit joindre), distincte du réseau caméra.
+# Secret RTSP défini dans vault.yml
+# (ansible-vault edit inventories/production/group_vars/all/vault.yml)
 webcam_domain: webcam.lavallee.tech
+# TODO : remplacer par l'IP LAN réelle de vm-camera-prod (doit correspondre
+# à inventories/production/hosts.yml).
+webcam_backend_host: TODO_SET_REAL_IP
