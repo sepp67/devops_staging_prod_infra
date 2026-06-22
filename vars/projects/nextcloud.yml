@@ -27,3 +27,11 @@ domain: "{{ nextcloud_domain }}"
 route_path: /
 host_port: "{{ nextcloud_host_port }}"
 backend_host: "{{ nextcloud_backend_host }}"
+
+redirects:
+  - from: /.well-known/carddav
+    to: /remote.php/dav
+    status: 301
+  - from: /.well-known/caldav
+    to: /remote.php/dav
+    status: 301

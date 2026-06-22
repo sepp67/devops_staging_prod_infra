@@ -25,6 +25,10 @@
     tls internal
 {% endif %}
 
+{% for redirect in project.redirects | default([]) %}
+    redir {{ redirect.from }} {{ redirect.to }} {{ redirect.status | default(301) }}
+{% endfor %}
+
 {% for p in projects if p.domain == project.domain %}
 {% if p.route_path is defined and p.route_path != "/" %}
     # Route : {{ p.route_path }} → {{ p.project_name }}
