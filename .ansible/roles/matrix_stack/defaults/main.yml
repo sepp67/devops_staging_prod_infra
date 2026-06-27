@@ -1,0 +1,71 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# ansible-role-matrix-stack — Variables par défaut
+#
+# Les secrets (mots de passe, clés Synapse) ne sont JAMAIS définis ici.
+# Ils doivent être fournis via Ansible Vault dans les group_vars de l'inventaire.
+# Voir examples/inventories/staging/group_vars/all/vault.yml.example.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+# Installer Docker automatiquement. Mettre à false si Docker est déjà géré
+# par un autre rôle ou un outil de provisioning externe.
+matrix_install_docker: true
+
+# Adresse d'écoute des ports Docker publiés.
+# 0.0.0.0 est requis si le reverse proxy est sur une VM séparée.
+docker_bind_address: "0.0.0.0"
+
+# Utilisateur système utilisé pour les opérations Docker Compose.
+# Doit appartenir au groupe "docker".
+deploy_user: devops
+
+# Nom de l'environnement — utilisé dans les commentaires des fichiers générés.
+environment_name: staging
+
+# ── Images ────────────────────────────────────────────────────────────────────
+matrix_synapse_image: matrixdotorg/synapse
+matrix_synapse_version: "latest"
+matrix_postgres_version: "16"
+
+# ── Répertoires ───────────────────────────────────────────────────────────────
+# Répertoire racine de la stack Matrix sur les VMs cibles.
+matrix_base_dir: /opt/matrix
+
+# ── PostgreSQL ────────────────────────────────────────────────────────────────
+# Adresse et port de la VM PostgreSQL — doit être joignable depuis les VMs Synapse.
+matrix_postgres_host: "127.0.0.1"
+matrix_postgres_port: 5432
+
+# Pool de connexions psycopg2 par instance Synapse.
+matrix_postgres_cp_min: 5
+matrix_postgres_cp_max: 10
+
+# ── Synapse Users ─────────────────────────────────────────────────────────────
+matrix_users_server_name: "matrix-users.example.com"
+matrix_users_public_baseurl: "https://matrix-users.example.com/"
+matrix_users_container_name: synapse-users
+matrix_users_http_port: 8008
+
+# ── Synapse Bridges ───────────────────────────────────────────────────────────
+matrix_bridges_server_name: "matrix-bridges.example.com"
+matrix_bridges_public_baseurl: "https://matrix-bridges.example.com/"
+matrix_bridges_container_name: synapse-bridges
+# Port hôte distinct de synapse-users pour permettre la cohabitation sur une VM.
+matrix_bridges_http_port: 8009
+
+# ── Fédération ────────────────────────────────────────────────────────────────
+# true  → fédération ouverte (défaut Matrix)
+# false → federation_domain_whitelist: [] (aucun serveur externe autorisé)
+matrix_federation_enabled: true
+
+# ── OIDC / Keycloak ───────────────────────────────────────────────────────────
+# Désactivé par défaut. Variables prêtes pour une intégration future Keycloak.
+matrix_oidc_enabled: false
+matrix_oidc_issuer: ""
+matrix_oidc_client_id: ""
+matrix_oidc_client_secret: ""
+
+# ── Santé du conteneur ────────────────────────────────────────────────────────
+matrix_healthcheck_retries: 15
+matrix_healthcheck_delay: 5

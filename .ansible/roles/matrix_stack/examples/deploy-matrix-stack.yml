@@ -1,0 +1,48 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# deploy-matrix-stack.yml — Playbook d'exemple
+#
+# Déploie la stack Matrix complète :
+#   1. PostgreSQL sur le groupe matrix_db
+#   2. Synapse Users sur le groupe matrix_users
+#   3. Synapse Bridges sur le groupe matrix_bridges
+#
+# Usage :
+#   # Staging
+#   ansible-playbook -i inventories/staging deploy-matrix-stack.yml --ask-vault-pass
+#
+#   # Production
+#   ansible-playbook -i inventories/production deploy-matrix-stack.yml --ask-vault-pass
+#
+#   # Composant unique
+#   ansible-playbook -i inventories/staging deploy-matrix-stack.yml \
+#     --ask-vault-pass --limit matrix_users
+#
+# Prérequis :
+#   ansible-galaxy collection install -r requirements.yml
+#   ansible-vault edit inventories/staging/group_vars/all/vault.yml
+# ─────────────────────────────────────────────────────────────────────────────
+
+- name: Deploy Matrix PostgreSQL
+  hosts: matrix_db
+  become: true
+  vars:
+    matrix_component: postgres
+  roles:
+    - role: matrix_stack
+
+- name: Deploy Synapse Users
+  hosts: matrix_users
+  become: true
+  vars:
+    matrix_component: synapse_users
+  roles:
+    - role: matrix_stack
+
+- name: Deploy Synapse Bridges
+  hosts: matrix_bridges
+  become: true
+  vars:
+    matrix_component: synapse_bridges
+  roles:
+    - role: matrix_stack

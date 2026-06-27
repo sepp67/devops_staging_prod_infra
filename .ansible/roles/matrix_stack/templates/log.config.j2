@@ -1,0 +1,30 @@
+# Généré par Ansible — ne pas éditer manuellement
+# Configuration de logs pour Synapse {{ _synapse_server_name }}
+
+version: 1
+
+formatters:
+  precise:
+    format: "%(asctime)s - %(name)s - %(lineno)d - %(levelname)s - %(request)s - %(message)s"
+
+handlers:
+  file:
+    class: logging.handlers.TimedRotatingFileHandler
+    filename: /data/homeserver.log
+    when: midnight
+    backupCount: 7
+    encoding: utf8
+    formatter: precise
+  console:
+    class: logging.StreamHandler
+    formatter: precise
+
+loggers:
+  synapse.storage.SQL:
+    level: WARN
+
+root:
+  level: INFO
+  handlers: [file, console]
+
+disable_existing_loggers: false

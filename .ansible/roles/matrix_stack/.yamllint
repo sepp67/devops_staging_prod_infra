@@ -1,0 +1,27 @@
+---
+extends: default
+
+ignore: |
+  .git/
+  .venv/
+  examples/inventories/*/group_vars/all/vault.yml.example
+
+rules:
+  line-length:
+    max: 160
+    level: warning
+
+  truthy:
+    allowed-values: ['true', 'false']
+
+  comments-indentation: false
+
+  braces:
+    max-spaces-inside: 1
+
+  comments:
+    min-spaces-from-content: 1
+
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true

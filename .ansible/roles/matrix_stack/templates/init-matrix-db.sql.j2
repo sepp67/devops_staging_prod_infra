@@ -1,0 +1,23 @@
+-- Généré par Ansible — ne pas éditer manuellement
+-- Initialise les bases de données et utilisateurs PostgreSQL pour Matrix Synapse.
+-- Exécuté une seule fois par Docker au premier démarrage (initdb).
+
+-- Utilisateurs PostgreSQL dédiés à chaque Synapse
+CREATE USER synapse_users WITH PASSWORD '{{ matrix_postgres_password_users }}';
+CREATE USER synapse_bridges WITH PASSWORD '{{ matrix_postgres_password_bridges }}';
+
+-- Base synapse_users : encodage UTF8 + locale C obligatoires pour Synapse
+CREATE DATABASE synapse_users
+    ENCODING 'UTF8'
+    LC_COLLATE 'C'
+    LC_CTYPE 'C'
+    TEMPLATE template0
+    OWNER synapse_users;
+
+-- Base synapse_bridges : même configuration
+CREATE DATABASE synapse_bridges
+    ENCODING 'UTF8'
+    LC_COLLATE 'C'
+    LC_CTYPE 'C'
+    TEMPLATE template0
+    OWNER synapse_bridges;

@@ -1,0 +1,51 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Variables communes — Staging Matrix Stack
+# Les secrets sont dans vault.yml (chiffré Ansible Vault).
+# ─────────────────────────────────────────────────────────────────────────────
+
+environment_name: staging
+deploy_user: devops
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+# matrix_install_docker: true  # Valeur par défaut du rôle — Docker sera installé
+
+# ── PostgreSQL ────────────────────────────────────────────────────────────────
+# IP de la VM PostgreSQL, joignable depuis les VMs Synapse.
+matrix_postgres_host: "192.168.1.79"
+matrix_postgres_port: 5432
+
+# ── Synapse Users ─────────────────────────────────────────────────────────────
+matrix_users_server_name: "matrix-users.staging.local"
+matrix_users_public_baseurl: "https://matrix-users.staging.local/"
+matrix_users_container_name: synapse-users
+matrix_users_http_port: 8008
+
+# ── Synapse Bridges ───────────────────────────────────────────────────────────
+matrix_bridges_server_name: "matrix-bridges.staging.local"
+matrix_bridges_public_baseurl: "https://matrix-bridges.staging.local/"
+matrix_bridges_container_name: synapse-bridges
+matrix_bridges_http_port: 8009
+
+# ── Fédération ────────────────────────────────────────────────────────────────
+matrix_federation_enabled: true
+
+# ── OIDC / Keycloak ───────────────────────────────────────────────────────────
+# Désactivé pour la première itération — variables prêtes pour intégration future.
+matrix_oidc_enabled: false
+matrix_oidc_issuer: ""
+matrix_oidc_client_id: ""
+matrix_oidc_client_secret: ""
+
+# ── Secrets — références vers vault.yml ───────────────────────────────────────
+# Ces variables pointent vers les valeurs chiffrées dans vault.yml.
+# Ne jamais mettre de valeurs en clair ici.
+matrix_postgres_superuser_password: "{{ vault_matrix_postgres_superuser_password }}"
+matrix_postgres_password_users: "{{ vault_matrix_postgres_password_users }}"
+matrix_postgres_password_bridges: "{{ vault_matrix_postgres_password_bridges }}"
+matrix_users_registration_shared_secret: "{{ vault_matrix_users_registration_shared_secret }}"
+matrix_users_macaroon_secret_key: "{{ vault_matrix_users_macaroon_secret_key }}"
+matrix_users_form_secret: "{{ vault_matrix_users_form_secret }}"
+matrix_bridges_registration_shared_secret: "{{ vault_matrix_bridges_registration_shared_secret }}"
+matrix_bridges_macaroon_secret_key: "{{ vault_matrix_bridges_macaroon_secret_key }}"
+matrix_bridges_form_secret: "{{ vault_matrix_bridges_form_secret }}"

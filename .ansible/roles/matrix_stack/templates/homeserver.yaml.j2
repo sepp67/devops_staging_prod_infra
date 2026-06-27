@@ -63,7 +63,6 @@ serve_server_wellknown: true
 
 trusted_key_servers:
   - server_name: "matrix.org"
-suppress_key_server_warning: true
 
 # ── OIDC / Keycloak ───────────────────────────────────────────────────────────
 # Désactivé par défaut. Pour activer, définir matrix_oidc_enabled: true
@@ -84,7 +83,6 @@ oidc_providers:
 {% endif %}
 
 # ── Divers ────────────────────────────────────────────────────────────────────
-report_stats: false
 allow_guest_access: false
 presence:
   enabled: false

@@ -1,0 +1,39 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Variables communes — Production Matrix Stack
+# Les secrets sont dans vault.yml (chiffré Ansible Vault).
+# ─────────────────────────────────────────────────────────────────────────────
+
+environment_name: production
+deploy_user: deploy
+
+matrix_postgres_host: "10.0.1.10"  # À remplacer par l'IP réelle
+matrix_postgres_port: 5432
+
+matrix_users_server_name: "matrix.example.com"
+matrix_users_public_baseurl: "https://matrix.example.com/"
+matrix_users_container_name: synapse-users
+matrix_users_http_port: 8008
+
+matrix_bridges_server_name: "matrix-bridges.example.com"
+matrix_bridges_public_baseurl: "https://matrix-bridges.example.com/"
+matrix_bridges_container_name: synapse-bridges
+matrix_bridges_http_port: 8009
+
+matrix_federation_enabled: true
+
+matrix_oidc_enabled: false
+matrix_oidc_issuer: ""
+matrix_oidc_client_id: ""
+matrix_oidc_client_secret: ""
+
+# Références vault
+matrix_postgres_superuser_password: "{{ vault_matrix_postgres_superuser_password }}"
+matrix_postgres_password_users: "{{ vault_matrix_postgres_password_users }}"
+matrix_postgres_password_bridges: "{{ vault_matrix_postgres_password_bridges }}"
+matrix_users_registration_shared_secret: "{{ vault_matrix_users_registration_shared_secret }}"
+matrix_users_macaroon_secret_key: "{{ vault_matrix_users_macaroon_secret_key }}"
+matrix_users_form_secret: "{{ vault_matrix_users_form_secret }}"
+matrix_bridges_registration_shared_secret: "{{ vault_matrix_bridges_registration_shared_secret }}"
+matrix_bridges_macaroon_secret_key: "{{ vault_matrix_bridges_macaroon_secret_key }}"
+matrix_bridges_form_secret: "{{ vault_matrix_bridges_form_secret }}"
