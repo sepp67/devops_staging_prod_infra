@@ -1,0 +1,66 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# deploy-matrix-stack.yml
+#
+# Orchestre le déploiement de la stack Matrix (PostgreSQL + deux Synapse) en
+# appelant le rôle externe matrix_stack. La logique applicative vit dans ce
+# rôle — ce playbook ne fait qu'injecter le composant cible et les secrets
+# Vault pour chaque groupe de VMs.
+#
+# Prérequis :
+#   ansible-galaxy install -r requirements.yml
+#
+# Usage :
+#   ansible-playbook -i inventories/staging playbooks/deploy-matrix-stack.yml \
+#     --ask-vault-pass
+#
+# Variables secrets attendues dans vault.yml (voir docs/matrix-stack.md) :
+#   vault_matrix_postgres_superuser_password
+#   vault_matrix_postgres_password_users
+#   vault_matrix_postgres_password_bridges
+#   vault_matrix_users_registration_shared_secret
+#   vault_matrix_users_macaroon_secret_key
+#   vault_matrix_users_form_secret
+#   vault_matrix_bridges_registration_shared_secret
+#   vault_matrix_bridges_macaroon_secret_key
+#   vault_matrix_bridges_form_secret
+# ─────────────────────────────────────────────────────────────────────────────
+
+- name: Deploy Matrix PostgreSQL (shared database)
+  hosts: matrix_db
+  become: true
+  roles:
+    - role: matrix_stack
+      vars:
+        matrix_component: postgres
+        matrix_postgres_superuser_password: "{{ vault_matrix_postgres_superuser_password }}"
+        matrix_postgres_password_users: "{{ vault_matrix_postgres_password_users }}"
+        matrix_postgres_password_bridges: "{{ vault_matrix_postgres_password_bridges }}"
+
+- name: Deploy Matrix Synapse – Users homeserver
+  hosts: matrix_users
+  become: true
+  roles:
+    - role: matrix_stack
+      vars:
+        matrix_component: synapse_users
+        matrix_server_name: "{{ matrix_users_domain }}"
+        matrix_postgres_host: "{{ hostvars[groups['matrix_db'][0]]['ansible_host'] }}"
+        matrix_postgres_password: "{{ vault_matrix_postgres_password_users }}"
+        matrix_registration_shared_secret: "{{ vault_matrix_users_registration_shared_secret }}"
+        matrix_macaroon_secret_key: "{{ vault_matrix_users_macaroon_secret_key }}"
+        matrix_form_secret: "{{ vault_matrix_users_form_secret }}"
+
+- name: Deploy Matrix Synapse – Bridges homeserver
+  hosts: matrix_bridges
+  become: true
+  roles:
+    - role: matrix_stack
+      vars:
+        matrix_component: synapse_bridges
+        matrix_server_name: "{{ matrix_bridges_domain }}"
+        matrix_postgres_host: "{{ hostvars[groups['matrix_db'][0]]['ansible_host'] }}"
+        matrix_postgres_password: "{{ vault_matrix_postgres_password_bridges }}"
+        matrix_registration_shared_secret: "{{ vault_matrix_bridges_registration_shared_secret }}"
+        matrix_macaroon_secret_key: "{{ vault_matrix_bridges_macaroon_secret_key }}"
+        matrix_form_secret: "{{ vault_matrix_bridges_form_secret }}"

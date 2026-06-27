@@ -1,0 +1,107 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# synapse.yml — Déploie un conteneur Synapse (users ou bridges)
+#
+# Calcule les variables du composant courant (_synapse_*) selon matrix_component,
+# puis crée les répertoires, déploie la configuration et démarre le conteneur.
+# La signing key est auto-générée par Synapse au premier démarrage et persiste
+# dans le volume de données.
+# ─────────────────────────────────────────────────────────────────────────────
+
+- name: Set computed variables for {{ matrix_component }}
+  ansible.builtin.set_fact:
+    _synapse_server_name: >-
+      {{ matrix_users_server_name if matrix_component == 'synapse_users'
+         else matrix_bridges_server_name }}
+    _synapse_public_baseurl: >-
+      {{ matrix_users_public_baseurl if matrix_component == 'synapse_users'
+         else matrix_bridges_public_baseurl }}
+    _synapse_container_name: >-
+      {{ matrix_users_container_name if matrix_component == 'synapse_users'
+         else matrix_bridges_container_name }}
+    _synapse_host_port: >-
+      {{ matrix_users_http_port if matrix_component == 'synapse_users'
+         else matrix_bridges_http_port }}
+    _synapse_db_name: >-
+      {{ 'synapse_users' if matrix_component == 'synapse_users' else 'synapse_bridges' }}
+    _synapse_db_user: >-
+      {{ 'synapse_users' if matrix_component == 'synapse_users' else 'synapse_bridges' }}
+    _synapse_db_password: >-
+      {{ matrix_postgres_password_users if matrix_component == 'synapse_users'
+         else matrix_postgres_password_bridges }}
+    _synapse_registration_shared_secret: >-
+      {{ matrix_users_registration_shared_secret if matrix_component == 'synapse_users'
+         else matrix_bridges_registration_shared_secret }}
+    _synapse_macaroon_secret_key: >-
+      {{ matrix_users_macaroon_secret_key if matrix_component == 'synapse_users'
+         else matrix_bridges_macaroon_secret_key }}
+    _synapse_form_secret: >-
+      {{ matrix_users_form_secret if matrix_component == 'synapse_users'
+         else matrix_bridges_form_secret }}
+    _synapse_compose_dir: >-
+      {{ matrix_base_dir }}/{{ 'users' if matrix_component == 'synapse_users' else 'bridges' }}
+    _synapse_data_dir: >-
+      {{ matrix_base_dir }}/{{ 'users' if matrix_component == 'synapse_users' else 'bridges' }}/data
+  no_log: true
+
+- name: Create Synapse compose directory for {{ matrix_component }}
+  ansible.builtin.file:
+    path: "{{ _synapse_compose_dir }}"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "0750"
+
+- name: Create Synapse data directory for {{ matrix_component }}
+  ansible.builtin.file:
+    path: "{{ _synapse_data_dir }}"
+    state: directory
+    owner: "991"
+    group: "991"
+    mode: "0750"
+
+- name: Deploy log configuration for {{ matrix_component }}
+  ansible.builtin.template:
+    src: log.config.j2
+    dest: "{{ _synapse_data_dir }}/log.config"
+    owner: "991"
+    group: "991"
+    mode: "0640"
+
+- name: Deploy homeserver.yaml for {{ matrix_component }}
+  ansible.builtin.template:
+    src: homeserver.yaml.j2
+    dest: "{{ _synapse_data_dir }}/homeserver.yaml"
+    owner: "991"
+    group: "991"
+    mode: "0640"
+  no_log: true
+  notify: Restart synapse
+
+- name: Deploy docker-compose.yml for {{ matrix_component }}
+  ansible.builtin.template:
+    src: synapse-compose.yml.j2
+    dest: "{{ _synapse_compose_dir }}/docker-compose.yml"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "0640"
+  notify: Restart synapse
+
+- name: Pull and start Synapse for {{ matrix_component }}
+  community.docker.docker_compose_v2:
+    project_src: "{{ _synapse_compose_dir }}"
+    pull: always
+    state: present
+  become: true
+  become_user: "{{ deploy_user }}"
+  no_log: true
+
+- name: Wait for Synapse healthcheck for {{ matrix_component }}
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ _synapse_host_port }}/_matrix/client/versions"
+    status_code: 200
+    return_content: false
+  register: _synapse_health
+  until: _synapse_health.status == 200
+  retries: "{{ matrix_healthcheck_retries }}"
+  delay: "{{ matrix_healthcheck_delay }}"

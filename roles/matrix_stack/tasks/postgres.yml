@@ -1,0 +1,67 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# postgres.yml — Déploie PostgreSQL dédié à la stack Matrix
+#
+# Crée deux bases (synapse_users, synapse_bridges) et deux utilisateurs
+# distincts via un script SQL monté dans /docker-entrypoint-initdb.d/.
+# Ce script n'est exécuté qu'une seule fois (premier démarrage) — idempotent.
+# ─────────────────────────────────────────────────────────────────────────────
+
+- name: Create PostgreSQL compose directory
+  ansible.builtin.file:
+    path: "{{ matrix_base_dir }}/postgres"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "0750"
+
+- name: Create PostgreSQL data directory
+  ansible.builtin.file:
+    path: "{{ matrix_base_dir }}/postgres/data"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create PostgreSQL init directory
+  ansible.builtin.file:
+    path: "{{ matrix_base_dir }}/postgres/init"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy PostgreSQL init SQL script
+  ansible.builtin.template:
+    src: init-matrix-db.sql.j2
+    dest: "{{ matrix_base_dir }}/postgres/init/01-init-matrix.sql"
+    owner: root
+    group: root
+    mode: "0644"
+  no_log: true
+
+- name: Deploy docker-compose.yml for matrix-postgres
+  ansible.builtin.template:
+    src: postgres-compose.yml.j2
+    dest: "{{ matrix_base_dir }}/postgres/docker-compose.yml"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "0640"
+  no_log: true
+  notify: Restart matrix-postgres
+
+- name: Pull and start matrix-postgres
+  community.docker.docker_compose_v2:
+    project_src: "{{ matrix_base_dir }}/postgres"
+    pull: always
+    state: present
+  become: true
+  become_user: "{{ deploy_user }}"
+  no_log: true
+
+- name: Wait for PostgreSQL to be ready
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: "{{ matrix_postgres_port }}"
+    delay: 5
+    timeout: 60

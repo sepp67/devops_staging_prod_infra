@@ -2,7 +2,11 @@
 # Ansible Galaxy requirements
 # Install with: ansible-galaxy install -r requirements.yml
 
-roles: []
+roles:
+  - src: https://github.com/sepp67/ansible-role-matrix-stack.git
+    scm: git
+    version: main
+    name: matrix_stack
 
 collections:
   - name: community.docker

@@ -1,0 +1,14 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Projet : matrix-users
+# Homeserver Synapse dédié aux utilisateurs Matrix.
+# project_type: external_service — le déploiement est géré par le rôle
+# matrix_stack (playbooks/deploy-matrix-stack.yml), pas par deploy-apps.yml.
+# Ce fichier ne sert qu'à déclarer le routage Caddy vers la VM Synapse Users.
+# ─────────────────────────────────────────────────────────────────────────────
+project_name: matrix-users
+project_type: external_service
+domain: "{{ matrix_users_domain }}"
+route_path: /
+host_port: "{{ matrix_users_http_port }}"
+backend_host: "{{ matrix_users_backend_host }}"

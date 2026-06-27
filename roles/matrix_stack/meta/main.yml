@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  role_name: matrix_stack
+  author: sepp67
+  description: >-
+    Deploy a dual-homeserver Matrix Synapse stack (users + bridges) with
+    dedicated PostgreSQL, via Docker Compose on Debian 12.
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+  galaxy_tags:
+    - matrix
+    - synapse
+    - docker
+    - postgresql
+    - homeserver
+dependencies: []

@@ -216,3 +216,17 @@ Les backends Caddy utilisent des variables, jamais `localhost` :
 |---|---|---|
 | Staging | `internal` | Certificats auto-signés Caddy (`tls internal`) |
 | Production | `acme` | Let's Encrypt automatique |
+
+## Stack Matrix
+
+La stack Matrix (PostgreSQL + Synapse) est déployée via le rôle externe **[ansible-role-matrix-stack](https://github.com/sepp67/ansible-role-matrix-stack)**, déclaré comme dépendance Git dans `requirements.yml`. Ce dépôt ne contient pas la logique applicative — il fournit uniquement les inventaires, les variables d'environnement et les secrets Vault.
+
+```bash
+# Installer les dépendances (dont le rôle matrix_stack)
+ansible-galaxy install -r requirements.yml
+
+# Déployer la stack Matrix en staging
+ansible-playbook -i inventories/staging playbooks/deploy-matrix-stack.yml --ask-vault-pass
+```
+
+Voir **[docs/matrix-stack.md](docs/matrix-stack.md)** pour la documentation complète (secrets Vault, déploiement par composant, routage Caddy).

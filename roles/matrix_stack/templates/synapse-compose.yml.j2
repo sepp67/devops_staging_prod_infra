@@ -1,0 +1,21 @@
+---
+# Généré par Ansible — ne pas éditer manuellement
+# Composant : {{ _synapse_container_name }} | Env : {{ environment_name }}
+
+services:
+  {{ _synapse_container_name }}:
+    image: "{{ matrix_synapse_image }}:{{ matrix_synapse_version }}"
+    container_name: "{{ _synapse_container_name }}"
+    restart: unless-stopped
+    ports:
+      - "{{ docker_bind_address }}:{{ _synapse_host_port }}:8008"
+    environment:
+      SYNAPSE_CONFIG_PATH: /data/homeserver.yaml
+    volumes:
+      - "{{ _synapse_data_dir }}:/data"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8008/_matrix/client/versions || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s

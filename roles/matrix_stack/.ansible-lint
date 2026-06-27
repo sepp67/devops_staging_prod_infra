@@ -1,0 +1,11 @@
+---
+profile: production
+
+exclude_paths:
+  - .git/
+  - .venv/
+  - examples/inventories/*/group_vars/all/vault.yml.example
+
+skip_list:
+  - yaml[line-length]
+  - var-naming[no-role-prefix]

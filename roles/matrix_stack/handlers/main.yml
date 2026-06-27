@@ -1,0 +1,14 @@
+---
+- name: Restart synapse
+  community.docker.docker_compose_v2:
+    project_src: "{{ _synapse_compose_dir }}"
+    state: restarted
+  become: true
+  become_user: "{{ deploy_user }}"
+
+- name: Restart matrix-postgres
+  community.docker.docker_compose_v2:
+    project_src: "{{ matrix_base_dir }}/postgres"
+    state: restarted
+  become: true
+  become_user: "{{ deploy_user }}"

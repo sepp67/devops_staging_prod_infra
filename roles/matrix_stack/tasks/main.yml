@@ -1,0 +1,27 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# ansible-role-matrix-stack — Point d'entrée
+#
+# La variable matrix_component contrôle ce qui est déployé sur l'hôte courant :
+#   postgres        → PostgreSQL partagé (deux bases, deux users)
+#   synapse_users   → Synapse homeserver dédié aux utilisateurs
+#   synapse_bridges → Synapse homeserver dédié aux bridges Mautrix
+#
+# Chaque composant est invoqué dans un play distinct du playbook, ciblant
+# le groupe d'inventaire correspondant. Voir examples/deploy-matrix-stack.yml.
+# ─────────────────────────────────────────────────────────────────────────────
+
+- name: Install Docker Engine and Docker Compose v2
+  ansible.builtin.include_tasks:
+    file: install_docker.yml
+  when: matrix_install_docker | bool
+
+- name: Deploy PostgreSQL for Matrix
+  ansible.builtin.include_tasks:
+    file: postgres.yml
+  when: matrix_component == 'postgres'
+
+- name: Deploy Synapse homeserver
+  ansible.builtin.include_tasks:
+    file: synapse.yml
+  when: matrix_component in ['synapse_users', 'synapse_bridges']

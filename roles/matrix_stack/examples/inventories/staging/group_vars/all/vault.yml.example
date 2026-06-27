@@ -1,0 +1,30 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# EXEMPLE vault.yml — NE PAS COMMITTER CE FICHIER EN CLAIR
+#
+# Ce fichier est un exemple non chiffré à titre documentaire.
+# Le vrai vault.yml doit être créé et chiffré avec :
+#   ansible-vault encrypt vault.yml
+# ou édité directement avec :
+#   ansible-vault edit vault.yml
+#
+# Pour générer des secrets forts :
+#   openssl rand -hex 32    # mots de passe PostgreSQL
+#   openssl rand -hex 64    # clés Synapse (registration_shared_secret, etc.)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Superutilisateur PostgreSQL (accès admin à la base)
+vault_matrix_postgres_superuser_password: "CHANGE_ME_strong_password_here"
+
+# Mots de passe des utilisateurs PostgreSQL Synapse
+vault_matrix_postgres_password_users: "CHANGE_ME_strong_password_here"
+vault_matrix_postgres_password_bridges: "CHANGE_ME_strong_password_here"
+
+# Secrets Synapse Users
+vault_matrix_users_registration_shared_secret: "CHANGE_ME_very_long_random_secret"
+vault_matrix_users_macaroon_secret_key: "CHANGE_ME_very_long_random_secret"
+vault_matrix_users_form_secret: "CHANGE_ME_very_long_random_secret"
+
+# Secrets Synapse Bridges
+vault_matrix_bridges_registration_shared_secret: "CHANGE_ME_very_long_random_secret"
+vault_matrix_bridges_macaroon_secret_key: "CHANGE_ME_very_long_random_secret"
+vault_matrix_bridges_form_secret: "CHANGE_ME_very_long_random_secret"
