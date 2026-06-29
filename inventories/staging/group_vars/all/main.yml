@@ -43,7 +43,10 @@ active_projects:
   - nextcloud
   - webcam
   - matrix-users
+  - matrix-users-federation
   - matrix-bridges
+  - matrix-bridges-federation
+  - element-web
 
 # ── Backends Caddy ────────────────────────────────────────────────────────────
 # Adresse IP ou hostname de la VM qui héberge les apps.
@@ -83,10 +86,59 @@ webcam_backend_host: 192.168.1.15
 # Ces variables ne servent qu'à router les requêtes vers les VMs Synapse.
 # La configuration Synapse et PostgreSQL est gérée par le rôle autonome
 # ansible-role-matrix-stack (dépôt séparé).
-matrix_users_domain: matrix-users.staging.local
+matrix_users_domain: matrix-users.local
 matrix_users_backend_host: "192.168.1.78"
 matrix_users_http_port: 8008
 
-matrix_bridges_domain: matrix-bridges.staging.local
+matrix_bridges_domain: matrix-bridges.local
 matrix_bridges_backend_host: "192.168.1.77"
 matrix_bridges_http_port: 8009
+
+# Configuration Synapse — ansible-role-matrix-stack
+matrix_users_server_name: "{{ matrix_users_domain }}"
+matrix_users_public_baseurl: "https://{{ matrix_users_domain }}/"
+
+matrix_bridges_server_name: "{{ matrix_bridges_domain }}"
+matrix_bridges_public_baseurl: "https://{{ matrix_bridges_domain }}/"
+
+# ── Matrix — Fédération interne (staging) ─────────────────────────────────────
+# DNS : les conteneurs Synapse doivent résoudre les noms de domaine Matrix vers
+# le proxy Caddy (192.168.1.56), pas vers les VMs Synapse elles-mêmes.
+# Sans cela, la fédération crée une boucle ou échoue avec une erreur SSL.
+# Note : les clés de ce dict sont des chaînes statiques — Ansible n'évalue pas
+# les expressions Jinja2 dans les clés de mapping YAML.
+matrix_extra_hosts:
+  "matrix-users.local": "192.168.1.56"
+  "matrix-bridges.local": "192.168.1.56"
+
+# Synapse refuse par défaut les connexions fédération vers des IPs RFC1918.
+# En staging avec un proxy interne, toutes les connexions passent par 192.168.1.56.
+matrix_synapse_ip_range_whitelist:
+  - "192.168.1.0/24"
+
+# ── Matrix — CA Caddy (staging uniquement) ────────────────────────────────────
+# Chemin du certificat CA écrit par le rôle caddy_ca sur chaque VM Synapse.
+# Le rôle Matrix monte ce fichier dans le conteneur et utilise l'entrypoint
+# dédié pour l'installer dans le trust store avant le démarrage de Synapse.
+# En production (ACME), laisser à "" : Let's Encrypt est reconnu par défaut.
+matrix_ca_cert_path: "/opt/caddy-ca/caddy-root.crt"
+
+
+# ── Element Web ───────────────────────────────────────────────────────────────
+# Le client web Matrix Element est déployé par le rôle element_web via
+# playbooks/deploy-apps.yml (play "Deploy Element Web client").
+# Ce fichier concentre toutes ses variables : routage Caddy (element_web_*)
+# et configuration du rôle (element_*).
+
+# Routage Caddy (vars/projects/element-web.yml)
+element_web_domain: element.lavallee.local
+element_web_backend_host: "192.168.1.80"  # TODO: remplacer par l'IP réelle
+element_web_http_port: 8080
+
+# Configuration du rôle element_web
+element_default_homeserver_url: "https://matrix-users.local"
+element_default_homeserver_name: "matrix-users.local"
+element_disable_custom_urls: false
+element_disable_guests: true
+element_brand: "ARN / Lavallee Matrix"
+element_http_port: 8080

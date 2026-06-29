@@ -1,0 +1,26 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# caddy_ca — Déploie le certificat CA Caddy sur la VM cible
+#
+# Toutes les tâches sont conditionnées : si caddy_ca_cert_content est vide
+# (production ACME, déploiement partiel sans fetch proxy), le rôle est un
+# no-op sans erreur.
+# ─────────────────────────────────────────────────────────────────────────────
+
+- name: Create CA certificate directory
+  ansible.builtin.file:
+    path: "{{ caddy_ca_cert_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: caddy_ca_enabled | bool and caddy_ca_cert_content | length > 0
+
+- name: Deploy Caddy CA certificate
+  ansible.builtin.copy:
+    content: "{{ caddy_ca_cert_content }}"
+    dest: "{{ caddy_ca_cert_dir }}/{{ caddy_ca_cert_filename }}"
+    owner: root
+    group: root
+    mode: "0644"
+  when: caddy_ca_enabled | bool and caddy_ca_cert_content | length > 0

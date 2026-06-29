@@ -1,0 +1,15 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Projet : matrix-bridges-federation
+# Route Caddy dédiée à la fédération Matrix sur le port 8448.
+#
+# Même logique que matrix-users-federation.yml : Caddy expose le port 8448
+# avec TLS et route vers le port HTTP 8009 de la VM Synapse Bridges.
+# ─────────────────────────────────────────────────────────────────────────────
+project_name: matrix-bridges-federation
+project_type: external_service
+domain: "{{ matrix_bridges_domain }}"
+listen_port: 8448
+route_path: /
+host_port: "{{ matrix_bridges_http_port }}"
+backend_host: "{{ matrix_bridges_backend_host }}"

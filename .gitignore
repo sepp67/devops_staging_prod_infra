@@ -11,3 +11,9 @@ venv/
 .DS_Store
 .vault_pass
 .vault
+CLAUDE.md
+# Rôles externes installés via ansible-galaxy install -r requirements.yml
+# Ne jamais versionner les rôles externes dans ce dépôt.
+roles/matrix_stack/
+roles/element_web/
+.ansible/

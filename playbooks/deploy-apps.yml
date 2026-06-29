@@ -2,29 +2,30 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # deploy-apps.yml
 #
-# Charge le registre de projets depuis vars/projects/*.yml,
-# puis déploie chaque projet de type docker_app ou grav_stack.
+# Point d'entrée unique pour le déploiement de toutes les applications.
 #
-# Pour ajouter une nouvelle application :
+# Usage :
+#   ansible-galaxy install -r requirements.yml
+#   ansible-playbook -i inventories/staging/hosts.yml playbooks/deploy-apps.yml \
+#     --ask-vault-pass
+#
+# Ce fichier orchestre plusieurs plays :
+#   1. Applications docker_app / grav_stack (groupes apps, webcam)
+#   2. Stack Matrix — PostgreSQL, Synapse Users, Synapse Bridges
+#   3. Element Web — client web Matrix
+#
+# Pour ajouter une nouvelle application docker_app ou grav_stack :
 #   1. Créer vars/projects/<app>.yml
 #   2. Ajouter le nom dans active_projects (inventories/*/group_vars/all/main.yml)
 #   3. Définir target_group: <groupe d'inventaire qui doit héberger ce projet>
-#      ("apps" pour la VM applicative générique, ou un groupe dédié comme
-#      "webcam" pour un projet sur sa propre VM)
 #   → Aucun rôle à modifier.
 #
-# IMPORTANT : ce playbook cible apps:webcam (et tout autre groupe dédié
-# ajouté à l'avenir), PAS seulement apps. Chaque hôte ne déploie que les
-# projets dont target_group correspond à l'un de ses propres groupes
-# (group_names) — sans ce filtre, un projet à VM dédiée (ex: webcam) serait
-# aussi déployé par erreur sur vm-apps-staging.
-#
-# project_type: external_service n'est JAMAIS inclus dans les boucles
-# ci-dessous. Ces projets (ex: nextcloud) sont routés par caddy_proxy
-# uniquement (voir playbooks/deploy-proxy.yml) — leur cycle de vie applicatif
-# est géré manuellement, hors de ce dépôt. Voir README.md, section
-# "Services externes", pour la justification complète.
+# project_type: external_service n'est JAMAIS inclus dans les boucles du
+# play 1. Ces projets sont routés par caddy_proxy uniquement
+# (voir playbooks/deploy-proxy.yml).
 # ─────────────────────────────────────────────────────────────────────────────
+
+# ── Play 1 : docker_app / grav_stack ─────────────────────────────────────────
 - name: Load project registry and deploy applications
   hosts: apps:webcam
   become: true
@@ -78,3 +79,88 @@
       loop: "{{ projects | selectattr('project_type', 'equalto', 'grav_stack') | list }}"
       loop_control:
         label: "{{ item.project_name }}"
+
+# ── Play 2 : Caddy CA — fetch depuis vm-proxy ─────────────────────────────────
+# Lit le certificat racine de la CA interne Caddy.
+# No-op en production (caddy_tls_mode == "acme") : le when conditionne le slurp.
+# En déploiement partiel (--limit matrix_users), ce play s'exécute sur le
+# groupe proxy si celui-ci est dans le scope, sinon caddy_ca_cert_content
+# sera vide et le rôle caddy_ca saute proprement ses tâches.
+- name: Fetch Caddy local CA certificate
+  hosts: proxy
+  gather_facts: false
+
+  tasks:
+    - name: Read Caddy root CA certificate
+      ansible.builtin.slurp:
+        src: /var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt
+      register: _caddy_ca
+      when: caddy_tls_mode == "internal"
+
+# ── Play 3 : Caddy CA — distribution sur les VMs Matrix ──────────────────────
+# Écrit le certificat CA sur les VMs Synapse via le rôle caddy_ca.
+# Le rôle Matrix ne connaît que le chemin du cert (matrix_ca_cert_path) ;
+# il ne sait pas comment ce cert a été obtenu.
+- name: Distribute Caddy CA to Matrix Synapse hosts
+  hosts: matrix_users:matrix_bridges
+  become: true
+  roles:
+    - role: caddy_ca
+      vars:
+        caddy_ca_cert_content: >-
+          {{
+            hostvars[groups['proxy'][0]]['_caddy_ca']['content'] | b64decode
+            if (groups['proxy'] | length > 0
+                and '_caddy_ca' in hostvars[groups['proxy'][0]]
+                and 'content' in hostvars[groups['proxy'][0]]['_caddy_ca'])
+            else ''
+          }}
+
+# ── Play 4 : Matrix — PostgreSQL partagé ─────────────────────────────────────
+- name: Deploy Matrix PostgreSQL (shared database)
+  hosts: matrix_db
+  become: true
+  roles:
+    - role: matrix_stack
+      vars:
+        matrix_component: postgres
+        matrix_postgres_superuser_password: "{{ vault_matrix_postgres_superuser_password }}"
+        matrix_postgres_password_users: "{{ vault_matrix_postgres_password_users }}"
+        matrix_postgres_password_bridges: "{{ vault_matrix_postgres_password_bridges }}"
+
+# ── Play 5 : Matrix — Synapse Users ──────────────────────────────────────────
+# matrix_ca_cert_path est défini dans group_vars/staging (ou "" en prod).
+# Le rôle monte le cert et l'entrypoint uniquement si ce chemin est non vide.
+- name: Deploy Matrix Synapse – Users homeserver
+  hosts: matrix_users
+  become: true
+  roles:
+    - role: matrix_stack
+      vars:
+        matrix_component: synapse_users
+        matrix_postgres_host: "{{ hostvars[groups['matrix_db'][0]]['ansible_host'] }}"
+        matrix_postgres_password_users: "{{ vault_matrix_postgres_password_users }}"
+        matrix_users_registration_shared_secret: "{{ vault_matrix_users_registration_shared_secret }}"
+        matrix_users_macaroon_secret_key: "{{ vault_matrix_users_macaroon_secret_key }}"
+        matrix_users_form_secret: "{{ vault_matrix_users_form_secret }}"
+
+# ── Play 6 : Matrix — Synapse Bridges ────────────────────────────────────────
+- name: Deploy Matrix Synapse – Bridges homeserver
+  hosts: matrix_bridges
+  become: true
+  roles:
+    - role: matrix_stack
+      vars:
+        matrix_component: synapse_bridges
+        matrix_postgres_host: "{{ hostvars[groups['matrix_db'][0]]['ansible_host'] }}"
+        matrix_postgres_password_bridges: "{{ vault_matrix_postgres_password_bridges }}"
+        matrix_bridges_registration_shared_secret: "{{ vault_matrix_bridges_registration_shared_secret }}"
+        matrix_bridges_macaroon_secret_key: "{{ vault_matrix_bridges_macaroon_secret_key }}"
+        matrix_bridges_form_secret: "{{ vault_matrix_bridges_form_secret }}"
+
+# ── Play 7 : Element Web ──────────────────────────────────────────────────────
+- name: Deploy Element Web client
+  hosts: element_web
+  become: true
+  roles:
+    - role: element_web

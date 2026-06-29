@@ -8,6 +8,11 @@ roles:
     version: main
     name: matrix_stack
 
+  - src: https://github.com/sepp67/ansible-role-element-web.git
+    scm: git
+    version: main
+    name: element_web
+
 collections:
   - name: community.docker
     version: ">=3.0.0"

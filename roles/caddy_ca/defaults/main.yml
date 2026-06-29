@@ -1,0 +1,23 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# caddy_ca — Variables par défaut
+#
+# Ce rôle distribue un certificat CA sur les VMs cibles afin que les
+# services Docker puissent faire confiance à la CA interne Caddy.
+# Il ne connaît rien de Synapse, Matrix ou tout autre service spécifique.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Mettre à false pour désactiver complètement le rôle (toutes les tâches
+# sont conditionnées par cette variable ET par la présence d'un contenu).
+caddy_ca_enabled: true
+
+# Contenu PEM du certificat CA à distribuer.
+# Fourni dynamiquement par le playbook (slurp depuis vm-proxy).
+# Laisser à "" pour désactiver l'écriture du certificat.
+caddy_ca_cert_content: ""
+
+# Répertoire cible sur la VM hôte.
+caddy_ca_cert_dir: /opt/caddy-ca
+
+# Nom du fichier certificat dans caddy_ca_cert_dir.
+caddy_ca_cert_filename: caddy-root.crt

@@ -1,0 +1,14 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Projet : element-web
+# Client web Matrix (Element). project_type: external_service — ce fichier
+# déclare uniquement le routage Caddy vers la VM Element Web. Le déploiement
+# est orchestré par le rôle element_web via playbooks/deploy-apps.yml
+# (play "Deploy Element Web client").
+# ─────────────────────────────────────────────────────────────────────────────
+project_name: element-web
+project_type: external_service
+domain: "{{ element_web_domain }}"
+route_path: /
+host_port: "{{ element_web_http_port }}"
+backend_host: "{{ element_web_backend_host }}"

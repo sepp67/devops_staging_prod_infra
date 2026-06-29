@@ -12,15 +12,25 @@
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Projets applicatifs (générés depuis vars/projects/)
+#
+# Regroupés par (domain, listen_port) : un bloc Caddy par paire.
+# listen_port absent → bloc standard (:443/:80).
+# listen_port défini → bloc explicite domain:port (ex : :8448 pour la
+# fédération Matrix).
 # ─────────────────────────────────────────────────────────────────────────────
 
-{% set ns = namespace(domains_seen=[]) %}
+{% set ns = namespace(blocks_seen=[]) %}
 {% for project in projects %}
-{#  Regroupe par domaine : on n'ouvre un bloc de domaine qu'une seule fois  #}
-{% if project.domain not in ns.domains_seen %}
-{% set _ = ns.domains_seen.append(project.domain) %}
+{%   set _port = project.listen_port | default('') | string %}
+{%   set _block_key = project.domain ~ '|' ~ _port %}
+{%   if _block_key not in ns.blocks_seen %}
+{%     set _ = ns.blocks_seen.append(_block_key) %}
 
+{% if _port %}
+{{ project.domain }}:{{ _port }} {
+{% else %}
 {{ project.domain }} {
+{% endif %}
 {% if caddy_tls_mode == "internal" %}
     tls internal
 {% endif %}
@@ -29,7 +39,7 @@
     redir {{ redirect.from }} {{ redirect.to }} {{ redirect.status | default(301) }}
 {% endfor %}
 
-{% for p in projects if p.domain == project.domain %}
+{% for p in projects if p.domain == project.domain and (p.listen_port | default('') | string) == _port %}
 {% if p.route_path is defined and p.route_path != "/" %}
     # Route : {{ p.route_path }} → {{ p.project_name }}
     handle {{ p.route_path }} {
@@ -55,5 +65,5 @@
 {% endif %}
 {% endfor %}
 }
-{% endif %}
+{%   endif %}
 {% endfor %}

@@ -2,10 +2,11 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Projet : matrix-bridges
 # Homeserver Synapse dédié aux bridges Mautrix (WhatsApp, Signal, etc.).
-# project_type: external_service — le déploiement est géré par le rôle
-# matrix_stack (playbooks/deploy-matrix-stack.yml), pas par deploy-apps.yml.
-# Ce fichier ne sert qu'à déclarer le routage Caddy vers la VM Synapse Bridges.
-# Les bridges Mautrix eux-mêmes ne sont pas encore installés à cette étape.
+# project_type: external_service — ce fichier déclare uniquement le routage
+# Caddy vers la VM Synapse Bridges. Le déploiement est orchestré par le rôle
+# matrix_stack via playbooks/deploy-apps.yml (play "Deploy Matrix Synapse –
+# Bridges homeserver"). Les bridges Mautrix eux-mêmes ne sont pas encore
+# installés à cette étape.
 # ─────────────────────────────────────────────────────────────────────────────
 project_name: matrix-bridges
 project_type: external_service
