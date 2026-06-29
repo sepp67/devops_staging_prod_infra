@@ -34,6 +34,11 @@ active_projects:
   # - grav-docs
   - nextcloud
   - webcam
+  - matrix-users
+  - matrix-users-federation
+  - matrix-bridges
+  - matrix-bridges-federation
+  - element-web
 
 # ── Backends Caddy ────────────────────────────────────────────────────────────
 # TODO : remplacer par l'IP réelle de vm-apps-prod (doit correspondre à
@@ -72,3 +77,70 @@ webcam_domain: webcam.lavallee.tech
 # TODO : remplacer par l'IP LAN réelle de vm-camera-prod (doit correspondre
 # à inventories/production/hosts.yml).
 webcam_backend_host: 192.168.1.73
+
+# ── Matrix (routage Caddy uniquement) ─────────────────────────────────────────
+# Ces variables ne servent qu'à router les requêtes vers les VMs Synapse.
+# La configuration Synapse et PostgreSQL est gérée par le rôle autonome
+# ansible-role-matrix-stack (dépôt séparé).
+matrix_users_domain: matrix-users.lavallee.tech
+matrix_users_backend_host: "192.168.1.81"
+matrix_users_http_port: 8008
+
+matrix_bridges_domain: matrix-bridges.lavallee.tech
+matrix_bridges_backend_host: "192.168.1.82"
+matrix_bridges_http_port: 8009
+
+# IP de vm-matrix-db (PostgreSQL) — joignable depuis les VMs Synapse
+matrix_postgres_host: "192.168.1.83"
+matrix_postgres_port: 5432
+
+# Configuration Synapse — ansible-role-matrix-stack
+matrix_users_server_name: "{{ matrix_users_domain }}"
+matrix_users_public_baseurl: "https://{{ matrix_users_domain }}/"
+
+matrix_bridges_server_name: "{{ matrix_bridges_domain }}"
+matrix_bridges_public_baseurl: "https://{{ matrix_bridges_domain }}/"
+
+# ── Matrix — Secrets (références vault) ───────────────────────────────────────
+matrix_postgres_superuser_password: "{{ vault_matrix_postgres_superuser_password }}"
+matrix_postgres_password_users: "{{ vault_matrix_postgres_password_users }}"
+matrix_postgres_password_bridges: "{{ vault_matrix_postgres_password_bridges }}"
+matrix_users_registration_shared_secret: "{{ vault_matrix_users_registration_shared_secret }}"
+matrix_users_macaroon_secret_key: "{{ vault_matrix_users_macaroon_secret_key }}"
+matrix_users_form_secret: "{{ vault_matrix_users_form_secret }}"
+matrix_bridges_registration_shared_secret: "{{ vault_matrix_bridges_registration_shared_secret }}"
+matrix_bridges_macaroon_secret_key: "{{ vault_matrix_bridges_macaroon_secret_key }}"
+matrix_bridges_form_secret: "{{ vault_matrix_bridges_form_secret }}"
+
+# ── Matrix — Fédération (production) ──────────────────────────────────────────
+# DNS : les conteneurs Synapse doivent résoudre les noms de domaine Matrix vers
+# le proxy Caddy, pas vers les VMs Synapse elles-mêmes.
+# Note : les clés de ce dict sont des chaînes statiques — Ansible n'évalue pas
+# les expressions Jinja2 dans les clés de mapping YAML.
+matrix_extra_hosts:
+  "matrix-users.lavallee.tech": "192.168.1.69"
+  "matrix-bridges.lavallee.tech": "192.168.1.69"
+
+# En production avec ACME (Let's Encrypt), pas besoin de whitelist RFC1918
+# sauf si le proxy est interne. À ajuster si le proxy prod est exposé publiquement.
+matrix_synapse_ip_range_whitelist:
+  - "192.168.1.0/24"
+
+# ── Matrix — CA Caddy ─────────────────────────────────────────────────────────
+# En production (ACME), Let's Encrypt est reconnu par défaut.
+# Laisser à "" sauf si le proxy utilise des certificats auto-signés.
+matrix_ca_cert_path: ""
+
+# ── Element Web ───────────────────────────────────────────────────────────────
+# Routage Caddy (vars/projects/element-web.yml)
+element_web_domain: element.lavallee.tech
+element_web_backend_host: "192.168.1.84"
+element_web_http_port: 8080
+
+# Configuration du rôle element_web
+element_default_homeserver_url: "https://matrix-users.lavallee.tech"
+element_default_homeserver_name: "matrix-users.lavallee.tech"
+element_disable_custom_urls: false
+element_disable_guests: true
+element_brand: "ARN / Lavallee Matrix"
+element_http_port: 8080
