@@ -47,6 +47,7 @@ active_projects:
   - matrix-bridges
   - matrix-bridges-federation
   - element-web
+  - keycloak
 
 # ── Backends Caddy ────────────────────────────────────────────────────────────
 # Adresse IP ou hostname de la VM qui héberge les apps.
@@ -55,6 +56,15 @@ backend_host: 192.168.1.58
 
 # Adresse IP ou hostname de la VM Nextcloud (service externe, voir ci-dessus).
 nextcloud_backend_host: 192.168.1.59
+
+# ── Keycloak / IAM (service externe) ─────────────────────────────────────────
+# Keycloak n'est PAS déployé par ce dépôt. Ces variables servent uniquement
+# au routage Caddy (vars/projects/keycloak.yml) et à la configuration OIDC
+# Synapse. Le service Keycloak est administré manuellement sur vm-keycloak-staging.
+# Caddy expose https://keycloak.staging.local avec tls internal.
+keycloak_domain: keycloak.staging.local
+keycloak_backend_host: "192.168.1.76"  # TODO: remplacer par l'IP réelle de vm-keycloak-staging
+keycloak_host_port: 8080
 
 # ── Nextcloud (service externe — voir README.md) ──────────────────────────────
 # Nextcloud n'est PAS déployé par ce dépôt. Ces deux variables ne servent
@@ -110,6 +120,9 @@ matrix_bridges_public_baseurl: "https://{{ matrix_bridges_domain }}/"
 matrix_extra_hosts:
   "matrix-users.local": "192.168.1.56"
   "matrix-bridges.local": "192.168.1.56"
+  # Synapse doit joindre Keycloak via le proxy Caddy (pas directement vers la VM
+  # Keycloak) pour que le certificat tls internal Caddy soit valide.
+  "keycloak.local": "192.168.1.76"
 
 # Synapse refuse par défaut les connexions fédération vers des IPs RFC1918.
 # En staging avec un proxy interne, toutes les connexions passent par 192.168.1.56.
@@ -142,3 +155,15 @@ element_disable_custom_urls: false
 element_disable_guests: true
 element_brand: "ARN / Lavallee Matrix"
 element_http_port: 8080
+
+# ── Matrix — OIDC / Keycloak ──────────────────────────────────────────────────
+# Synapse délègue l'authentification à Keycloak via OIDC.
+# L'issuer pointe vers Caddy (tls internal), pas directement vers la VM Keycloak.
+# Pré-requis : keycloak.staging.local résolu → 192.168.1.56 (proxy Caddy) dans
+# matrix_extra_hosts, et la CA Caddy installée dans le trust store du conteneur
+# via l'entrypoint wrapper (rôle matrix_stack, matrix_ca_cert_path non vide).
+# Le secret est dans vault.yml : vault_matrix_oidc_client_secret.
+matrix_oidc_enabled: true
+matrix_oidc_issuer: "https://{{ keycloak_domain }}/realms/lavallee"
+matrix_oidc_client_id: synapse
+matrix_oidc_client_secret: "{{ vault_matrix_oidc_client_secret }}"

@@ -13,7 +13,11 @@
 # ─────────────────────────────────────────────────────────────────────────────
 - name: Provision Docker hosts
   ansible.builtin.import_playbook: deploy-docker-host.yml
-- name: Deploy applications
-  ansible.builtin.import_playbook: deploy-apps.yml
+# En staging, Caddy génère la CA locale (tls internal) utilisée ensuite par les
+# applications (Matrix/Synapse via matrix_ca_cert_path). Le proxy doit donc être
+# déployé AVANT les applications pour que la CA soit disponible lors du play 2
+# de deploy-apps.yml (slurp depuis vm-proxy-staging).
 - name: Deploy reverse proxy
   ansible.builtin.import_playbook: deploy-proxy.yml
+- name: Deploy applications
+  ansible.builtin.import_playbook: deploy-apps.yml

@@ -1,0 +1,18 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Projet : keycloak
+# Service IAM EXTERNE — non déployé par ce dépôt.
+#
+# Keycloak est administré manuellement sur vm-keycloak-staging.
+# Ce fichier déclare uniquement le routage Caddy vers la VM Keycloak.
+# Caddy expose https://keycloak.staging.local avec tls internal.
+#
+# project_type: external_service n'est JAMAIS inclus dans les boucles de
+# déploiement de playbooks/deploy-apps.yml — uniquement dans deploy-proxy.yml.
+# ─────────────────────────────────────────────────────────────────────────────
+project_name: keycloak
+project_type: external_service
+domain: "{{ keycloak_domain }}"
+route_path: /
+host_port: "{{ keycloak_host_port }}"
+backend_host: "{{ keycloak_backend_host }}"
