@@ -62,7 +62,7 @@ nextcloud_backend_host: 192.168.1.59
 # au routage Caddy (vars/projects/keycloak.yml) et à la configuration OIDC
 # Synapse. Le service Keycloak est administré manuellement sur vm-keycloak-staging.
 # Caddy expose https://keycloak.staging.local avec tls internal.
-keycloak_domain: keycloak.staging.local
+keycloak_domain: keycloak.lavallee.local
 keycloak_backend_host: "192.168.1.76"  # TODO: remplacer par l'IP réelle de vm-keycloak-staging
 keycloak_host_port: 8080
 
@@ -122,7 +122,7 @@ matrix_extra_hosts:
   "matrix-bridges.local": "192.168.1.56"
   # Synapse doit joindre Keycloak via le proxy Caddy (pas directement vers la VM
   # Keycloak) pour que le certificat tls internal Caddy soit valide.
-  "keycloak.local": "192.168.1.76"
+  "keycloak.lavallee.local": "192.168.1.56"
 
 # Synapse refuse par défaut les connexions fédération vers des IPs RFC1918.
 # En staging avec un proxy interne, toutes les connexions passent par 192.168.1.56.
