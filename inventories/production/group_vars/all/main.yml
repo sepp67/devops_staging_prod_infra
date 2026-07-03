@@ -131,6 +131,16 @@ matrix_synapse_ip_range_whitelist:
 # Laisser à "" sauf si le proxy utilise des certificats auto-signés.
 matrix_ca_cert_path: ""
 
+# ── Matrix — Bridges (mautrix-whatsapp / mautrix-telegram / mautrix-signal) ──
+# Pas encore activés en production. Le play "Deploy Matrix bridges" de
+# deploy-apps.yml cible le groupe matrix_bridges dans tous les environnements,
+# mais toutes ses tâches sont gardées par `when: matrix_bridges_enabled | bool`
+# (voir roles/matrix_stack/tasks/bridges.yml) : tant que ce flag reste false,
+# le play s'exécute sans effet. matrix_bridges et matrix_postgresql_databases
+# ne sont pas complétés ici tant que les domaines, secrets et images de
+# production n'ont pas été validés en staging.
+matrix_bridges_enabled: false
+
 # ── Element Web ───────────────────────────────────────────────────────────────
 # Routage Caddy (vars/projects/element-web.yml)
 element_web_domain: element.lavallee.tech

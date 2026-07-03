@@ -167,3 +167,80 @@ matrix_oidc_enabled: true
 matrix_oidc_issuer: "https://{{ keycloak_domain }}/realms/lavallee"
 matrix_oidc_client_id: synapse
 matrix_oidc_client_secret: "{{ vault_matrix_oidc_client_secret }}"
+
+# ── Matrix — PostgreSQL — bases génériques ────────────────────────────────────
+# Toutes les bases PostgreSQL de la stack Matrix, y compris les bridges. Le
+# rôle ne connaît aucune de ces bases par son nom (voir
+# tasks/postgresql_databases.yml) : ajouter un composant Matrix qui a besoin
+# de PostgreSQL consiste à ajouter une entrée ici. Consommé par le play
+# "Deploy Matrix PostgreSQL" (matrix_component: postgres) de deploy-apps.yml.
+matrix_postgresql_databases:
+  - name: synapse_users
+    user: synapse_users
+    password: "{{ vault_matrix_postgres_password_users }}"
+
+  - name: synapse_bridges
+    user: synapse_bridges
+    password: "{{ vault_matrix_postgres_password_bridges }}"
+
+  - name: mautrix_whatsapp
+    user: mautrix_whatsapp
+    password: "{{ vault_matrix_bridge_whatsapp_db_password }}"
+
+  - name: mautrix_telegram
+    user: mautrix_telegram
+    password: "{{ vault_matrix_bridge_telegram_db_password }}"
+
+  - name: mautrix_signal
+    user: mautrix_signal
+    password: "{{ vault_matrix_bridge_signal_db_password }}"
+
+# ── Matrix — Bridges (mautrix-whatsapp / mautrix-telegram / mautrix-signal) ──
+# Déployés par le rôle matrix_stack (matrix_component: bridges) sur le groupe
+# matrix_bridges, après Synapse Bridges — voir play "Deploy Matrix bridges"
+# de deploy-apps.yml. Chaque bridge a sa base PostgreSQL dédiée déclarée
+# ci-dessus dans matrix_postgresql_databases.
+matrix_bridges_enabled: true
+
+# Permissions par défaut : deny-all (héritage du rôle), sauf les comptes
+# matrix-users.local qui peuvent utiliser les bridges.
+# Note : comme pour matrix_extra_hosts, les clés de ce dict sont des chaînes
+# statiques — Ansible n'évalue pas les expressions Jinja2 dans les clés de
+# mapping YAML, donc pas de "{{ matrix_users_domain }}" ici.
+matrix_bridges_default_permissions:
+  "*": ""
+  "matrix-users.local": "user"
+
+matrix_bridges:
+  - name: whatsapp
+    image: dock.mau.dev/mautrix/whatsapp
+    tag: latest
+    container_name: mautrix-whatsapp
+    appservice_id: whatsapp
+    appservice_port: 29317
+    bot_username: whatsappbot
+    database_name: mautrix_whatsapp
+    database_user: mautrix_whatsapp
+    database_password: "{{ vault_matrix_bridge_whatsapp_db_password }}"
+
+  - name: telegram
+    image: dock.mau.dev/mautrix/telegram
+    tag: latest
+    container_name: mautrix-telegram
+    appservice_id: telegram
+    appservice_port: 29318
+    bot_username: telegrambot
+    database_name: mautrix_telegram
+    database_user: mautrix_telegram
+    database_password: "{{ vault_matrix_bridge_telegram_db_password }}"
+
+  - name: signal
+    image: dock.mau.dev/mautrix/signal
+    tag: latest
+    container_name: mautrix-signal
+    appservice_id: signal
+    appservice_port: 29319
+    bot_username: signalbot
+    database_name: mautrix_signal
+    database_user: mautrix_signal
+    database_password: "{{ vault_matrix_bridge_signal_db_password }}"

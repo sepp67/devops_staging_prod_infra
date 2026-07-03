@@ -11,7 +11,7 @@
 #
 # Ce fichier orchestre plusieurs plays :
 #   1. Applications docker_app / grav_stack (groupes apps, webcam)
-#   2. Stack Matrix — PostgreSQL, Synapse Users, Synapse Bridges
+#   2. Stack Matrix — PostgreSQL, Synapse Users, Synapse Bridges, Bridges
 #   3. Element Web — client web Matrix
 #
 # Pour ajouter une nouvelle application docker_app ou grav_stack :
@@ -158,7 +158,21 @@
         matrix_bridges_macaroon_secret_key: "{{ vault_matrix_bridges_macaroon_secret_key }}"
         matrix_bridges_form_secret: "{{ vault_matrix_bridges_form_secret }}"
 
-# ── Play 7 : Element Web ──────────────────────────────────────────────────────
+# ── Play 7 : Matrix — Bridges (mautrix-whatsapp, mautrix-telegram, mautrix-signal) ──
+# Exécuté après Synapse Bridges : les registration.yaml des bridges doivent
+# exister avant que Synapse Bridges ne soit redémarré pour les charger.
+# Sans effet tant que matrix_bridges_enabled est false (voir
+# roles/matrix_stack/tasks/bridges.yml) — reste inerte en production.
+- name: Deploy Matrix bridges
+  hosts: matrix_bridges
+  become: true
+  roles:
+    - role: matrix_stack
+      vars:
+        matrix_component: bridges
+        matrix_postgres_host: "{{ hostvars[groups['matrix_db'][0]]['ansible_host'] }}"
+
+# ── Play 8 : Element Web ──────────────────────────────────────────────────────
 - name: Deploy Element Web client
   hosts: element_web
   become: true
