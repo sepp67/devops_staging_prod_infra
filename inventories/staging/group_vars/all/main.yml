@@ -201,7 +201,8 @@ matrix_postgresql_databases:
 # de deploy-apps.yml. Chaque bridge a sa base PostgreSQL dédiée déclarée
 # ci-dessus dans matrix_postgresql_databases.
 matrix_bridges_enabled: true
-
+matrix_synapse_internal_url: "http://192.168.1.77:8009"
+matrix_appservice_base_url: "http://192.168.1.77"
 # Permissions par défaut : deny-all (héritage du rôle), sauf les comptes
 # matrix-users.local qui peuvent utiliser les bridges.
 # Note : comme pour matrix_extra_hosts, les clés de ce dict sont des chaînes
@@ -233,7 +234,20 @@ matrix_bridges:
     database_name: mautrix_telegram
     database_user: mautrix_telegram
     database_password: "{{ vault_matrix_bridge_telegram_db_password }}"
-
+    # api_id/api_hash sont obligatoires pour mautrix-telegram (my.telegram.org).
+    # Merged tel quel dans config.yaml via matrix_bridge.extra_config — WhatsApp
+    # et Signal n'ont pas cette clé, donc ils ne sont pas impactés.
+    # Clé "network" (pas "telegram") : l'image dock.mau.dev/mautrix/telegram:latest
+    # est la réécriture Go (bridgev2), dont le schéma attend api_id/api_hash
+    # sous network:, pas sous un top-level telegram: (ancien bridge Python).
+    extra_config:
+      network:
+        # api_id doit être un entier YAML non quoté (struct Go: APIID int) —
+        # le filtre | int force le type natif, quel que soit le typage du
+        # vault. api_hash est un string côté Go, pas besoin de cast.
+        api_id: "{{ vault_matrix_telegram_api_id | int }}"
+        api_hash: "{{ vault_matrix_telegram_api_hash }}"
+    
   - name: signal
     image: dock.mau.dev/mautrix/signal
     tag: latest

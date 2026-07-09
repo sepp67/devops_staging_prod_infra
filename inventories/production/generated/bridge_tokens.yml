@@ -1,0 +1,19 @@
+# Généré par Ansible — ne pas éditer manuellement
+# Registre consolidé des tokens Application Service — environnement production
+#
+# Vue de confort uniquement : la source de vérité pour l'idempotence reste les
+# fichiers individuels /home/sebastien/Documents/repos/0-devops_staging_prod_infra/inventories/production/generated/<bridge>-as-token.txt et
+# <bridge>-hs-token.txt (générés une seule fois via le lookup ansible.builtin.password
+# et jamais régénérés). Ne jamais éditer ces fichiers à la main : un changement de
+# token désynchronise Synapse et le bridge tant que les deux ne sont pas mis à jour
+# ensemble.
+
+whatsapp:
+    as_token: "6557319A1Ca774f4cB65dD790dea7F84cCE3d048A8Cb8dDFba9E5DbcB0fccb6b"
+    hs_token: "0eB75CeAa7258F1700c78fd54DC2C3961eC657Bf62470E9bFAdD80fc44aFDacD"
+telegram:
+    as_token: "B1FfF66497382e31aCBdC88d3Dd5183Ae7cefb7D72ca85ffB63fDAFf0c0EF19C"
+    hs_token: "EFFFFFB7f4CFE9d21afADcd5ED87930069B32ea0CC5C54F9C7a8669d6EecAf0C"
+signal:
+    as_token: "0A41fA75aEB06C17CcA9a9fFfED4Cfe310eC097B1caA68b6cB1Fa8ce4fAbdaA8"
+    hs_token: "130481FE0b4c63E0CA29ba80aD86B4bA44Bb5bd8B8feaFF8d6ADbe7EBd7c3B36"

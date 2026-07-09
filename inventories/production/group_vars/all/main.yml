@@ -39,6 +39,7 @@ active_projects:
   - matrix-bridges
   - matrix-bridges-federation
   - element-web
+  - keycloak
 
 # ── Backends Caddy ────────────────────────────────────────────────────────────
 # TODO : remplacer par l'IP réelle de vm-apps-prod (doit correspondre à
@@ -54,6 +55,18 @@ nextcloud_backend_host: 192.168.1.71
 # qu'au routage Caddy (vars/projects/nextcloud.yml), pas à un déploiement.
 nextcloud_domain: cloud.lavallee.tech
 nextcloud_host_port: 8080
+
+# ── Keycloak / IAM (service externe) ─────────────────────────────────────────
+# Keycloak n'est PAS déployé par ce dépôt. Ces variables servent uniquement
+# au routage Caddy (vars/projects/keycloak.yml). Keycloak est administré
+# manuellement sur vm-keycloak-prod.
+# Intégration OIDC Synapse activée — voir bloc "Matrix — OIDC / Keycloak"
+# ci-dessous (matrix_oidc_enabled).
+keycloak_domain: keycloak.lavallee.tech
+# TODO : remplacer par l'IP réelle de vm-keycloak-prod (doit correspondre
+# à inventories/production/hosts.yml).
+keycloak_backend_host: "192.168.1.85"
+keycloak_host_port: 8080
 
 # ── Grav (grav-docs) ──────────────────────────────────────────────────────────
 # Bootstrap admin optionnel (voir vars/projects/grav-docs.yml et le rôle
@@ -101,6 +114,17 @@ matrix_users_public_baseurl: "https://{{ matrix_users_domain }}/"
 matrix_bridges_server_name: "{{ matrix_bridges_domain }}"
 matrix_bridges_public_baseurl: "https://{{ matrix_bridges_domain }}/"
 
+# ── Matrix — OIDC / Keycloak ──────────────────────────────────────────────────
+# Synapse délègue l'authentification à Keycloak via OIDC.
+# Pré-requis externe (Keycloak, administré manuellement) : un realm "lavallee"
+# avec un client confidentiel "synapse" dont le secret correspond à
+# vault_matrix_oidc_client_secret, et une redirect URI
+# https://matrix-users.lavallee.tech/_synapse/client/oidc/callback.
+matrix_oidc_enabled: true
+matrix_oidc_issuer: "https://{{ keycloak_domain }}/realms/lavallee"
+matrix_oidc_client_id: synapse
+matrix_oidc_client_secret: "{{ vault_matrix_oidc_client_secret }}"
+
 # ── Matrix — Secrets (références vault) ───────────────────────────────────────
 matrix_postgres_superuser_password: "{{ vault_matrix_postgres_superuser_password }}"
 matrix_postgres_password_users: "{{ vault_matrix_postgres_password_users }}"
@@ -112,6 +136,33 @@ matrix_bridges_registration_shared_secret: "{{ vault_matrix_bridges_registration
 matrix_bridges_macaroon_secret_key: "{{ vault_matrix_bridges_macaroon_secret_key }}"
 matrix_bridges_form_secret: "{{ vault_matrix_bridges_form_secret }}"
 
+# ── Matrix — PostgreSQL — bases génériques ────────────────────────────────────
+# Toutes les bases PostgreSQL de la stack Matrix, y compris les bridges. Le
+# rôle ne connaît aucune de ces bases par son nom : ajouter un composant
+# Matrix qui a besoin de PostgreSQL consiste à ajouter une entrée ici.
+# Consommé par le play "Deploy Matrix PostgreSQL" (matrix_component: postgres)
+# de deploy-apps.yml.
+matrix_postgresql_databases:
+  - name: synapse_users
+    user: synapse_users
+    password: "{{ vault_matrix_postgres_password_users }}"
+
+  - name: synapse_bridges
+    user: synapse_bridges
+    password: "{{ vault_matrix_postgres_password_bridges }}"
+
+  - name: mautrix_whatsapp
+    user: mautrix_whatsapp
+    password: "{{ vault_matrix_bridge_whatsapp_db_password }}"
+
+  - name: mautrix_telegram
+    user: mautrix_telegram
+    password: "{{ vault_matrix_bridge_telegram_db_password }}"
+
+  - name: mautrix_signal
+    user: mautrix_signal
+    password: "{{ vault_matrix_bridge_signal_db_password }}"
+
 # ── Matrix — Fédération (production) ──────────────────────────────────────────
 # DNS : les conteneurs Synapse doivent résoudre les noms de domaine Matrix vers
 # le proxy Caddy, pas vers les VMs Synapse elles-mêmes.
@@ -120,6 +171,9 @@ matrix_bridges_form_secret: "{{ vault_matrix_bridges_form_secret }}"
 matrix_extra_hosts:
   "matrix-users.lavallee.tech": "192.168.1.69"
   "matrix-bridges.lavallee.tech": "192.168.1.69"
+  # Synapse doit joindre Keycloak via le proxy Caddy (pas directement vers la VM
+  # Keycloak) — même principe que les deux entrées ci-dessus.
+  "keycloak.lavallee.tech": "192.168.1.69"
 
 # En production avec ACME (Let's Encrypt), pas besoin de whitelist RFC1918
 # sauf si le proxy est interne. À ajuster si le proxy prod est exposé publiquement.
@@ -132,14 +186,67 @@ matrix_synapse_ip_range_whitelist:
 matrix_ca_cert_path: ""
 
 # ── Matrix — Bridges (mautrix-whatsapp / mautrix-telegram / mautrix-signal) ──
-# Pas encore activés en production. Le play "Deploy Matrix bridges" de
-# deploy-apps.yml cible le groupe matrix_bridges dans tous les environnements,
-# mais toutes ses tâches sont gardées par `when: matrix_bridges_enabled | bool`
-# (voir roles/matrix_stack/tasks/bridges.yml) : tant que ce flag reste false,
-# le play s'exécute sans effet. matrix_bridges et matrix_postgresql_databases
-# ne sont pas complétés ici tant que les domaines, secrets et images de
-# production n'ont pas été validés en staging.
-matrix_bridges_enabled: false
+# Déployés par le rôle matrix_stack (matrix_component: bridges) sur le groupe
+# matrix_bridges, après Synapse Bridges — voir play "Deploy Matrix bridges"
+# de deploy-apps.yml. Chaque bridge a sa base PostgreSQL dédiée déclarée
+# ci-dessus dans matrix_postgresql_databases.
+matrix_bridges_enabled: true
+matrix_synapse_internal_url: "http://192.168.1.82:{{ matrix_bridges_http_port }}"
+matrix_appservice_base_url: "http://192.168.1.82"
+# Permissions par défaut : deny-all (héritage du rôle), sauf les comptes
+# matrix-users.lavallee.tech qui peuvent utiliser les bridges.
+# Note : comme pour matrix_extra_hosts, les clés de ce dict sont des chaînes
+# statiques — Ansible n'évalue pas les expressions Jinja2 dans les clés de
+# mapping YAML, donc pas de "{{ matrix_users_domain }}" ici.
+matrix_bridges_default_permissions:
+  "*": ""
+  "matrix-users.lavallee.tech": "user"
+
+matrix_bridges:
+  - name: whatsapp
+    image: dock.mau.dev/mautrix/whatsapp
+    tag: latest
+    container_name: mautrix-whatsapp
+    appservice_id: whatsapp
+    appservice_port: 29317
+    bot_username: whatsappbot
+    database_name: mautrix_whatsapp
+    database_user: mautrix_whatsapp
+    database_password: "{{ vault_matrix_bridge_whatsapp_db_password }}"
+
+  - name: telegram
+    image: dock.mau.dev/mautrix/telegram
+    tag: latest
+    container_name: mautrix-telegram
+    appservice_id: telegram
+    appservice_port: 29318
+    bot_username: telegrambot
+    database_name: mautrix_telegram
+    database_user: mautrix_telegram
+    database_password: "{{ vault_matrix_bridge_telegram_db_password }}"
+    # api_id/api_hash sont obligatoires pour mautrix-telegram (my.telegram.org).
+    # Même application Telegram qu'en staging (partagée entre les deux environnements).
+    # Clé "network" (pas "telegram") : l'image dock.mau.dev/mautrix/telegram:latest
+    # est la réécriture Go (bridgev2), dont le schéma attend api_id/api_hash
+    # sous network:, pas sous un top-level telegram: (ancien bridge Python).
+    extra_config:
+      network:
+        # api_id doit être un entier YAML non quoté (struct Go: APIID int) —
+        # le filtre | int force le type natif, quel que soit le typage du
+        # vault. api_hash est un string côté Go, pas besoin de cast.
+        api_id: "{{ vault_matrix_telegram_api_id | int }}"
+        api_hash: "{{ vault_matrix_telegram_api_hash }}"
+
+  - name: signal
+    image: dock.mau.dev/mautrix/signal
+    tag: latest
+    container_name: mautrix-signal
+    appservice_id: signal
+    appservice_port: 29319
+    bot_username: signalbot
+    database_name: mautrix_signal
+    database_user: mautrix_signal
+    database_password: "{{ vault_matrix_bridge_signal_db_password }}"
 
 # ── Element Web ───────────────────────────────────────────────────────────────
 # Routage Caddy (vars/projects/element-web.yml)
