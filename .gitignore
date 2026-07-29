@@ -17,3 +17,5 @@ CLAUDE.md
 roles/matrix_stack/
 roles/element_web/
 .ansible/
+
+inventories/*/generated/
